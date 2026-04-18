@@ -21,7 +21,6 @@ function getCityHasDistrict(playerID, cityDistricts, districtType)
 end
 
 function hasCityBuiltPrimaryDistricts(playerID, cityDistricts)
-    print(cityDistricts)
     if not (
         getCityHasDistrict(playerID, cityDistricts, "DISTRICT_COMMERCIAL_HUB") or
         getCityHasDistrict(playerID, cityDistricts, "DISTRICT_HARBOR")
@@ -29,17 +28,14 @@ function hasCityBuiltPrimaryDistricts(playerID, cityDistricts)
         return false
     end
 
-    print(2)
     if not getCityHasDistrict(playerID, cityDistricts, "DISTRICT_INDUSTRIAL_ZONE") then
         return false
     end
 
-    print(3)
     if not getCityHasDistrict(playerID, cityDistricts, "DISTRICT_THEATER") then
         return false
     end
 
-    print(4)
     if not (
         getCityHasDistrict(playerID, cityDistricts, "DISTRICT_ENTERTAINMENT_COMPLEX") or
         getCityHasDistrict(playerID, cityDistricts, "DISTRICT_WATER_ENTERTAINMENT_COMPLEX")
@@ -47,7 +43,6 @@ function hasCityBuiltPrimaryDistricts(playerID, cityDistricts)
         return false
     end
 
-    print(5)
     if not (
         getCityHasDistrict(playerID, cityDistricts, "DISTRICT_ENCAMPMENT") or
         getCityHasDistrict(playerID, cityDistricts, "DISTRICT_CAMPUS") or
@@ -55,7 +50,6 @@ function hasCityBuiltPrimaryDistricts(playerID, cityDistricts)
     ) then
         return false
     end
-    print(6)
     return true
 end
 
@@ -195,8 +189,6 @@ function getPlayerUniqueDistricts(playerID)
 end
 
 function IsDistrictBlocked(playerID, cityID, districtType)
-    print("==== START ====")
-    print(districtType)
     if playerUniqueDistricts[playerID] == nil then
         playerUniqueDistricts[playerID] = getPlayerUniqueDistricts(playerID)
     end
@@ -213,7 +205,6 @@ function IsDistrictBlocked(playerID, cityID, districtType)
     if baseDistrictType == nil then
         baseDistrictType = districtType
     end
-    print(districtType, baseDistrictType)
     local player = Players[playerID]
     local city = player:GetCities():FindID(cityID)
     local cityDistricts = city:GetDistricts()
@@ -230,14 +221,10 @@ function IsDistrictBlocked(playerID, cityID, districtType)
             ["DISTRICT_HARBOR"] = "DISTRICT_COMMERCIAL_HUB",
         }
         local compareDistrict = compareDistricts[baseDistrictType]
-        print(compareDistrict)
         if getCityHasDistrict(playerID, cityDistricts, compareDistrict) then
-            print("city has " .. compareDistrict)
             if not hasCityBuiltPrimaryDistricts(playerID, cityDistricts) then
-                print("Returning blocked")
                 return true, "Disabled until all primary districts have been built."
             end
-            print("this should not get hit..")
         end
     end
 
