@@ -1,29 +1,31 @@
 <Mod id="e403b233-4510-437c-a7d4-a3d7772637d6" version="1">
-  <Properties>
-    <Name>Custom District Rules</Name>
-    <Description>Blocks districts based on custom gameplay logic.</Description>
-    <Teaser>Custom District Rules</Teaser>
-    <Authors>satoon101</Authors>
-    <CompatibleVersions>2.0</CompatibleVersions>
-  </Properties>
+    <Properties>
+        <Name>Custom District Rules</Name>
+        <Description>Blocks districts based on custom gameplay logic.</Description>
+        <Teaser>Custom District Rules</Teaser>
+        <Authors>satoon101</Authors>
+        <CompatibleVersions>2.0</CompatibleVersions>
+    </Properties>
 
-  <Files>
-    <File>scripts/Gameplay/DistrictRestrictions.lua</File>
-    <File>scripts/UI/ProductionPanel_DistrictBlocker.lua</File>
-  </Files>
+    <Files>
+        <File>scripts/Gameplay/DistrictRestrictions.lua</File>
+        <File>scripts/UI/ProductionPanel_DistrictBlocker.lua</File>
+        <File>scripts/UI/AdjacencyBonusSupport_DamBlocker.lua</File>
+    </Files>
 
-  <InGameActions>
-    <!-- 2. Gameplay Scripts -->
-    <AddGameplayScripts id="DistrictRestrictionsScript">
-      <File>scripts/Gameplay/DistrictRestrictions.lua</File>
-    </AddGameplayScripts>
+    <InGameActions>
+        <AddGameplayScripts id="DistrictRestrictionsScript">
+            <File>scripts/Gameplay/DistrictRestrictions.lua</File>
+        </AddGameplayScripts>
 
-    <!-- 3. UI Script (Replaces InGameUIAddin) -->
-    <ReplaceUIScript id="CustomProductionPanel">
-      <Properties>
-        <LuaContext>ProductionPanel</LuaContext>
-        <LuaReplace>scripts/UI/ProductionPanel_DistrictBlocker.lua</LuaReplace>
-      </Properties>
-    </ReplaceUIScript>
-  </InGameActions>
+        <ReplaceUIScript id="CustomProductionPanel">
+            <Properties>
+                <LuaContext>ProductionPanel</LuaContext>
+                <LuaReplace>scripts/UI/ProductionPanel_DistrictBlocker.lua</LuaReplace>
+            </Properties>
+        </ReplaceUIScript>
+        <ImportFiles id="CustomAdjacencyBonusSupport">
+            <File>scripts/UI/AdjacencyBonusSupport_DamBlocker.lua</File>
+        </ImportFiles>
+    </InGameActions>
 </Mod>

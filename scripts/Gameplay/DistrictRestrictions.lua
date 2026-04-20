@@ -5,9 +5,10 @@
 
 print("=== Custom District Rules (Gameplay) Loading ===")
 
-if not ExposedMembers.CustomDistrictRules then
-    ExposedMembers.CustomDistrictRules = {}
-end
+g_GreatBathRiverName = Game:GetProperty("GreatBathRiverName") or nil
+g_WondersByCity = Game:GetProperty("WondersByCity") or {}
+
+ExposedMembers.CustomDistrictRules = ExposedMembers.CustomDistrictRules or {}
 
 local playerUniqueDistricts = {}
 
@@ -252,11 +253,28 @@ function IsDistrictBlocked(playerID, cityID, districtType)
         end
     end
 
+    -- Disallow Dam being built on the same river as the Great Bath
+    if baseDistrictType == "DISTRICT_DAM" then
+        local foundValidDamPlot = false
+        local plotIDsToCheck = ExposedMembers.DamValidator.GetCityDamPlots(playerID, cityID)
+        for _, plotID in ipairs(plotIDsToCheck) do
+            local plot = Map.GetPlotByIndex(plotID)
+            local riverName = RiverManager.GetRiverName(plot)
+            if riverName ~= g_GreatBathRiverName then
+                foundValidDamPlot = true
+                break
+            end
+        end
+        if not foundValidDamPlot then
+            return true, "No available dam plots"
+        end
+    end
+
     -- Default: allowed
     return false, nil
 end
 
-function IsBuildingBlocked(districtType, buildingType)
+function IsBuildingBlocked(cityID, districtType, buildingType, isWonder)
     local currentEraIndex = Game.GetEras():GetCurrentEra()
     -- Disallow buildings based on era by tier
     local requiredEraIndex = getEraForBuilding(districtType, buildingType)
@@ -264,6 +282,16 @@ function IsBuildingBlocked(districtType, buildingType)
     if requiredEraIndex ~= nil and currentEraIndex < requiredEraIndex then
         local eraName = GameInfo.Eras[requiredEraIndex].Name
         return true, "Disabled until the " .. Locale.Lookup(eraName) .. "."
+    end
+
+    -- Disallow building more than 1 Wonder in the city
+    if isWonder then
+        if (
+            g_WondersByCity[cityID] and
+            g_WondersByCity[cityID] ~= buildingType
+        ) then
+            return true, "This city has already established a Wonder"
+        end
     end
 
     -- Default: allowed
@@ -276,5 +304,59 @@ end
 
 ExposedMembers.CustomDistrictRules.IsDistrictBlocked = IsDistrictBlocked
 ExposedMembers.CustomDistrictRules.IsBuildingBlocked = IsBuildingBlocked
+
+function OnDistrictAddedToMap(playerID, districtID, cityID, x, y)
+    if g_GreatBathRiverName ~= nil then return end
+    local district = CityManager.GetDistrict(playerID, districtID)
+    if district ~= nil then return end
+
+    local gbDistrictType = GameInfo.Districts["DISTRICT_WONDER"].Index
+    if district:GetType() ~= gbDistrictType then return end
+
+    local plot = Map.GetPlot(x, y)
+    local wonderType = plot:GetWonderType()
+    if wonderType == GameInfo.Buildings["BUILDING_GREAT_BATH"].Index then
+        g_GreatBathRiverName = RiverManager.GetRiverName(plot)
+        Game:SetProperty("GreatBathRiverName", g_GreatBathRiverName)
+    end
+end
+
+Events.DistrictAddedToMap.Add(OnDistrictAddedToMap)
+
+function OnCityProductionChanged(playerID, cityID)
+    local player = Players[playerID]
+    if not player then
+        return
+    end
+
+    if not player:IsHuman() then
+        return
+    end
+
+    local city = player:GetCities():FindID(cityID)
+    if not city then
+        return
+    end
+
+    local queue = city:GetBuildQueue()
+    local prodType = queue:CurrentlyBuilding()
+
+    -- Nothing being produced
+    if prodType == -1 then
+        return
+    end
+
+    -- Is the new production a wonder?
+    local bInfo = GameInfo.Buildings[prodType]
+    if bInfo and bInfo.IsWonder then
+        -- WONDER JUST ADDED TO QUEUE
+        if not g_WondersByCity[cityID] then
+            g_WondersByCity[cityID] = prodType
+            Game:SetProperty("WondersByCity", g_WondersByCity)
+        end
+    end
+end
+
+Events.CityProductionChanged.Add(OnCityProductionChanged)
 
 print("=== Custom District Rules (Gameplay) Loaded ===")

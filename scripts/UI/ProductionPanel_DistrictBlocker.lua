@@ -1,26 +1,27 @@
-print("=== DISTRICT BLOCKER UI LOADING ***")
+print("=== Custom District Rules (UI) Loading ===")
 -- ===========================================================================
 --  Custom District Rules - UI Script
 --  Overrides ProductionPanel to block certain districts.
 -- ===========================================================================
 include("ProductionPanel")
+include("AdjacencyBonusSupport_DamBlocker")
+
+
 
 local BASE_GetData = GetData
 
 function GetData()
     local data = BASE_GetData()
-    local cityID = data.City
+    local city = data.City
+    local cityID = city:GetID()
     local playerID = data.Owner
     local player = Players[playerID]
     if not player:IsHuman() then
         return data
     end
 
-    local city = player:GetCities():FindID(cityID)
     for i, item in ipairs(data.DistrictItems) do
-        print(item.Type, item.Disabled, item.IsComplete, item.HasBeenBuilt, item.Progress)
         if not item.Disabled and not item.HasBeenBuilt and item.Progress == 0 then
-            print("starting...")
             local isBlocked, reason = ExposedMembers.CustomDistrictRules.IsDistrictBlocked(
                 playerID,
                 cityID,
@@ -33,10 +34,12 @@ function GetData()
         end
     end
     for i, item in ipairs(data.BuildingItems) do
-        if not item.Disabled and not item.IsWonder and item.Progress == 0 then
+        if not item.Disabled and item.Progress == 0 then
             local isBlocked, reason = ExposedMembers.CustomDistrictRules.IsBuildingBlocked(
+                cityID,
                 item.PrereqDistrict,
-                item.Type
+                item.Type,
+                item.IsWonder
             )
             if isBlocked then
                 item.Disabled = true
@@ -47,4 +50,4 @@ function GetData()
     return data
 end
 
-print("*** DISTRICT BLOCKER UI LOADED ===")
+print("=== Custom District Rules (UI) Loaded ===")
