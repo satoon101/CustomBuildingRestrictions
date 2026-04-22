@@ -1,4 +1,7 @@
-print("=== Custom District Rules (UI DamBlocker) Loading ===")
+-- ===========================================================================
+--  Custom District Rules - UI Script
+--  Provides Dam District based functionality to gameplay scripts.
+-- ===========================================================================
 
 ExposedMembers.DamValidator = ExposedMembers.DamValidator or {}
 
@@ -10,4 +13,4 @@ function ExposedMembers.DamValidator.GetCityDamPlots(playerID, cityID)
     return GetCityRelatedPlotIndexesDistrictsAlternative(city, districtHash)
 end
 
-print("=== Custom District Rules (UI DamBlocker) Loaded ===")
+print("=== Custom District Rules (DamBlocker) Loaded ===")

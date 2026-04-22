@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Mod id="e403b233-4510-437c-a7d4-a3d7772637d6" version="1">
     <Properties>
         <Name>Custom District Rules</Name>
@@ -6,12 +7,6 @@
         <Authors>satoon101</Authors>
         <CompatibleVersions>2.0</CompatibleVersions>
     </Properties>
-
-    <Files>
-        <File>scripts/Gameplay/DistrictRestrictions.lua</File>
-        <File>scripts/UI/ProductionPanel_DistrictBlocker.lua</File>
-        <File>scripts/UI/AdjacencyBonusSupport_DamBlocker.lua</File>
-    </Files>
 
     <InGameActions>
         <AddGameplayScripts id="DistrictRestrictionsScript">
@@ -24,8 +19,31 @@
                 <LuaReplace>scripts/UI/ProductionPanel_DistrictBlocker.lua</LuaReplace>
             </Properties>
         </ReplaceUIScript>
+
+        <ReplaceUIScript id="CustomMapPinPopup">
+            <Properties>
+                <LuaContext>MapPinPopup</LuaContext>
+                <LuaReplace>scripts/UI/MapPinPopup_RefreshOnOk.lua</LuaReplace>
+            </Properties>
+        </ReplaceUIScript>
+
         <ImportFiles id="CustomAdjacencyBonusSupport">
+            <File>scripts/Gameplay/DistrictRestrictions_Config.lua</File>
+            <File>scripts/Gameplay/DistrictRestrictions_Events.lua</File>
+            <File>scripts/Gameplay/DistrictRestrictions_Helpers.lua</File>
             <File>scripts/UI/AdjacencyBonusSupport_DamBlocker.lua</File>
+            <File>scripts/UI/MapTack_Interface.lua</File>
         </ImportFiles>
     </InGameActions>
+
+    <Files>
+        <File>scripts/Gameplay/DistrictRestrictions.lua</File>
+        <File>scripts/Gameplay/DistrictRestrictions_Config.lua</File>
+        <File>scripts/Gameplay/DistrictRestrictions_Events.lua</File>
+        <File>scripts/Gameplay/DistrictRestrictions_Helpers.lua</File>
+        <File>scripts/UI/AdjacencyBonusSupport_DamBlocker.lua</File>
+        <File>scripts/UI/MapPinPopup_RefreshOnOk.lua</File>
+        <File>scripts/UI/MapTack_Interface.lua</File>
+        <File>scripts/UI/ProductionPanel_DistrictBlocker.lua</File>
+    </Files>
 </Mod>
