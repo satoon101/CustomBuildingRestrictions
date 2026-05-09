@@ -6,7 +6,7 @@
 print("=== Custom District Rules (ProductionPanel) Loading ===")
 
 include("ProductionPanel")
-include("AdjacencyBonusSupport_DamBlocker")
+include("ProductionPanel_Helpers")
 
 local BASE_GetData = GetData
 
@@ -36,6 +36,7 @@ function GetData()
     for _, item in ipairs(data.BuildingItems) do
         if not item.Disabled and item.Progress == 0 then
             local isBlocked, reason = ExposedMembers.CustomDistrictRules.IsBuildingBlocked(
+                playerID,
                 cityID,
                 item.PrereqDistrict,
                 item.Type,

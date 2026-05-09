@@ -27,11 +27,12 @@
             </Properties>
         </ReplaceUIScript>
 
-        <ImportFiles id="CustomAdjacencyBonusSupport">
+        <ImportFiles id="CustomProductionPanelHelpers">
             <File>scripts/Gameplay/DistrictRestrictions_Config.lua</File>
             <File>scripts/Gameplay/DistrictRestrictions_Events.lua</File>
             <File>scripts/Gameplay/DistrictRestrictions_Helpers.lua</File>
-            <File>scripts/UI/AdjacencyBonusSupport_DamBlocker.lua</File>
+            <File>scripts/Gameplay/DistrictRestrictions_Special.lua</File>
+            <File>scripts/UI/ProductionPanel_Helpers.lua</File>
             <File>scripts/UI/MapTack_Interface.lua</File>
         </ImportFiles>
     </InGameActions>
@@ -41,7 +42,8 @@
         <File>scripts/Gameplay/DistrictRestrictions_Config.lua</File>
         <File>scripts/Gameplay/DistrictRestrictions_Events.lua</File>
         <File>scripts/Gameplay/DistrictRestrictions_Helpers.lua</File>
-        <File>scripts/UI/AdjacencyBonusSupport_DamBlocker.lua</File>
+        <File>scripts/Gameplay/DistrictRestrictions_Special.lua</File>
+        <File>scripts/UI/ProductionPanel_Helpers.lua</File>
         <File>scripts/UI/MapPinPopup_RefreshOnOk.lua</File>
         <File>scripts/UI/MapTack_Interface.lua</File>
         <File>scripts/UI/ProductionPanel_DistrictBlocker.lua</File>

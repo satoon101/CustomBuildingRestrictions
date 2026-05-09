@@ -18,13 +18,14 @@ function SyncPins()
     PinsByPlot = {}
     PinsByCity = {}
     local pPins = pConfig:GetMapPins()
-    for _, pin in ipairs(pPins) do
+    for _, pin in pairs(pPins) do
         local x = pin:GetHexX()
         local y = pin:GetHexY()
         local plotID = Map.GetPlot(x, y):GetIndex()
-        local cityID = Cities.GetPlotPurchaseCity(x, y)
-        if cityID ~= nil then
-            cityID = cityID:GetID()
+        local city = Cities.GetPlotPurchaseCity(x, y)
+        local cityID = -1
+        if city ~= nil then
+            cityID = city:GetID()
             if PinsByCity[cityID] == nil then
                 PinsByCity[cityID] = {}
             end
@@ -38,7 +39,7 @@ function SyncPins()
     end
 end
 
-function GetPinForWonderInCity(cityID, buildingID)
+function GetPinForWonderInCity(cityID, buildingType)
     local cityMapPinPlots = PinsByCity[cityID]
     if cityMapPinPlots == nil then
         return nil
@@ -48,7 +49,7 @@ function GetPinForWonderInCity(cityID, buildingID)
         local pinData = PinsByPlot[plotID]
         if pinData ~= nil then
             local icon = pinData.Icon
-            if icon == buildingID then
+            if icon == buildingType then
                 return pinData.PinID
             end
         end
@@ -79,6 +80,26 @@ end
 
 ExposedMembers.MapPins.GetCityWonderFromMapPins = GetCityWonderFromMapPins
 
+function IsDistrictPinInCity(cityID, districtType)
+    local cityMapPinPlots = PinsByCity[cityID]
+    if cityMapPinPlots == nil then
+        return false
+    end
+
+    for _, plotID in ipairs(cityMapPinPlots) do
+        local pinData = PinsByPlot[plotID]
+        if pinData ~= nil then
+            local icon = pinData.Icon
+            if icon == districtType then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+ExposedMembers.MapPins.IsDistrictPinInCity = IsDistrictPinInCity
+
 function DeleteMapPin(playerID, pinID)
     PlayerConfigurations[playerID]:DeleteMapPin(pinID)
     Network.BroadcastPlayerInfo()
@@ -87,10 +108,7 @@ end
 
 ExposedMembers.MapPins.DeleteMapPin = DeleteMapPin
 
-function OnLoadGameViewStateDone()
-    SyncPins()
-end
-
-Events.LoadGameViewStateDone.Add(OnLoadGameViewStateDone)
+Events.LoadGameViewStateDone.Add(SyncPins)
+Events.CityAddedToMap.Add(SyncPins)
 
 print("=== Custom District Rules (MapTack) Loaded ===")

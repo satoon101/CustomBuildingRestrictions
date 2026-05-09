@@ -15,6 +15,12 @@ function IsDistrictBlocked(playerID, cityID, districtType)
         playerUniqueDistricts[playerID] = getPlayerUniqueDistricts(playerID)
     end
 
+    -- Disallow if always restricted
+    local isDisabled = alwaysRestrict["districts"][districtType]
+    if isDisabled then
+        return true, "District is always disabled"
+    end
+
     -- Disallow districts based on Era
     local currentEraIndex = Game.GetEras():GetCurrentEra()
     local requiredEraIndex = getEraForDistrict(districtType)
@@ -77,7 +83,7 @@ function IsDistrictBlocked(playerID, cityID, districtType)
     -- Disallow Dam being built on the same river as the Great Bath
     if baseDistrictType == "DISTRICT_DAM" and g_GreatBathRiverName ~= nil then
         local foundValidDamPlot = false
-        local plotIDsToCheck = ExposedMembers.DamValidator.GetCityDamPlots(playerID, cityID)
+        local plotIDsToCheck = ExposedMembers.ProductionPanelHelpers.GetCityDamPlots(playerID, cityID)
         for _, plotID in ipairs(plotIDsToCheck) do
             local plot = Map.GetPlotByIndex(plotID)
             local riverName = RiverManager.GetRiverName(plot)
@@ -91,14 +97,25 @@ function IsDistrictBlocked(playerID, cityID, districtType)
         end
     end
 
-    -- Disallow districts that should only be built in 1 city
-    --  for a specific wonder
-    local districtWonder = districtEraConfig[baseDistrictType]["Wonder"]
-    if districtWonder ~= nil then
-        local cityWonder = ExposedMembers.MapPins.GetCityWonderFromMapPins(cityID)
-        if cityWonder ~= districtWonder then
-            local name = Locale.Lookup(GameInfo.Buildings[districtWonder].Name)
-            return true, "District only allowed for city marked to build " .. name
+    local districtMapPinRestricted = districtMapPinRestrictions[baseDistrictType]
+    if districtMapPinRestricted ~= nil then
+
+        -- Disallow district if restricted to specific city map pin
+        if districtMapPinRestricted == true then
+            if not ExposedMembers.MapPins.IsDistrictPinInCity(cityID, districtType) then
+                return true, "District restricted due to no district map pin for city."
+            end
+        end
+
+        -- Disallow districts that should only be built in 1 city
+        --  for a specific wonder
+        local building = GameInfo.Buildings[districtMapPinRestricted]
+        if building ~= nil and building.IsWonder then
+            local cityWonder = ExposedMembers.MapPins.GetCityWonderFromMapPins(cityID)
+            if cityWonder ~= districtMapPinRestricted then
+                local name = Locale.Lookup(GameInfo.Buildings[districtMapPinRestricted].Name)
+                return true, "District only allowed for city marked to build " .. name
+            end
         end
     end
 
@@ -106,11 +123,35 @@ function IsDistrictBlocked(playerID, cityID, districtType)
     return false, nil
 end
 
-function IsBuildingBlocked(cityID, districtType, buildingType, isWonder)
-    local currentEraIndex = Game.GetEras():GetCurrentEra()
-    -- Disallow buildings based on era by tier
-    local requiredEraIndex = getEraForBuilding(districtType, buildingType)
+function IsBuildingBlocked(playerID, cityID, districtType, buildingType, isWonder)
+    -- Disallow if always restricted
+    local isDisabled = alwaysRestrict["buildings"][buildingType]
+    if isDisabled then
+        return true, "Building is always disabled"
+    end
 
+    local specialRestriction = specialRestrictions["buildings"][buildingType]
+    if specialRestriction ~= nil then
+        local isBlocked, reason = specialRestriction(playerID, cityID, districtType, buildingType)
+        if isBlocked then
+            return true, reason
+        end
+    end
+
+    local buildingMapPinRestricted = buildingMapPinRestrictions[buildingType]
+    if buildingMapPinRestricted ~= nil then
+        local wonderForCity = ExposedMembers.MapPins.GetCityWonderFromMapPins(
+            cityID
+        )
+        if wonderForCity ~= buildingMapPinRestricted then
+            local name = Locale.Lookup(GameInfo.Buildings[buildingMapPinRestricted].Name)
+            return true, "Building only allowed for city marked to build " .. name
+        end
+    end
+
+    -- Disallow buildings based on era by tier
+    local currentEraIndex = Game.GetEras():GetCurrentEra()
+    local requiredEraIndex = getEraForBuilding(districtType, buildingType)
     if requiredEraIndex ~= nil and currentEraIndex < requiredEraIndex then
         local eraName = GameInfo.Eras[requiredEraIndex].Name
         return true, "Disabled until the " .. Locale.Lookup(eraName) .. "."

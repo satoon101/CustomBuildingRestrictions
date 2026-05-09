@@ -22,12 +22,12 @@ function OnDelete()
     SyncPins()
 end
 
-local BASE_OnMapPinPlayerInfoChanged = OnMapPinPlayerInfoChanged;
+local BASE_OnMapPinPlayerInfoChanged = OnMapPinPlayerInfoChanged
 
 function OnMapPinPlayerInfoChanged(playerID)
     -- If VisibilityPull is nil, the window is closing; don't try to update it
     if Controls.VisibilityPull ~= nil then
-        BASE_OnMapPinPlayerInfoChanged(playerID);
+        BASE_OnMapPinPlayerInfoChanged(playerID)
     end
 end
 
