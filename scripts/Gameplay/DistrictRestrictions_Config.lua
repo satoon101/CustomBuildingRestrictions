@@ -124,6 +124,45 @@ alwaysRestrict = {
     }
 }
 
+districtCountRestrictions = {
+    ["DISTRICT_CAMPUS"] = {
+        [ANCIENT_ERA_INDEX] = 2,
+        [CLASSICAL_ERA_INDEX] = 2,
+        [MEDIEVAL_ERA_INDEX] = 2,
+        [RENAISSANCE_ERA_INDEX] = 2,
+        [INDUSTRIAL_ERA_INDEX] = 2,
+        [ATOMIC_ERA_INDEX] = 2,
+        [INFORMATION_ERA_INDEX] = 2,
+    },
+    ["DISTRICT_COMMERCIAL_HUB"] = {
+        [ANCIENT_ERA_INDEX] = 2,
+        [CLASSICAL_ERA_INDEX] = 2,
+        [MEDIEVAL_ERA_INDEX] = 2,
+        [RENAISSANCE_ERA_INDEX] = 2,
+        [INDUSTRIAL_ERA_INDEX] = 2,
+        [ATOMIC_ERA_INDEX] = 2,
+        [INFORMATION_ERA_INDEX] = 2,
+    },
+    ["DISTRICT_ENCAMPMENT"] = {
+        [ANCIENT_ERA_INDEX] = 2,
+        [CLASSICAL_ERA_INDEX] = 2,
+        [MEDIEVAL_ERA_INDEX] = 2,
+        [RENAISSANCE_ERA_INDEX] = 2,
+        [INDUSTRIAL_ERA_INDEX] = 2,
+        [ATOMIC_ERA_INDEX] = 2,
+        [INFORMATION_ERA_INDEX] = 2,
+    },
+    ["DISTRICT_INDUSTRIAL_ZONE"] = {
+        [ANCIENT_ERA_INDEX] = 2,
+        [CLASSICAL_ERA_INDEX] = 2,
+        [MEDIEVAL_ERA_INDEX] = 2,
+        [RENAISSANCE_ERA_INDEX] = 2,
+        [INDUSTRIAL_ERA_INDEX] = 2,
+        [ATOMIC_ERA_INDEX] = 2,
+        [INFORMATION_ERA_INDEX] = 2,
+    },
+}
+
 --  Tier 0 = District
 --  Tier 1+ = Buildings based off of # of prerequisites + 1
 eraConfigPerDistrict = {
@@ -149,7 +188,9 @@ eraConfigPerDistrict = {
         ["1"] = ANCIENT_ERA_INDEX,
         ["2"] = ANCIENT_ERA_INDEX,
         ["3"] = ANCIENT_ERA_INDEX,
-        ["BUILDING_MONUMENT"] = INDUSTRIAL_ERA_INDEX
+        ["BUILDING_MONUMENT"] = INDUSTRIAL_ERA_INDEX,
+        ["BUILDING_CASTLE"] = RENAISSANCE_ERA_INDEX,
+        ["BUILDING_STAR_FORT"] = INDUSTRIAL_ERA_INDEX
     },
     ["DISTRICT_COMMERCIAL_HUB"] = {
         ["0"] = CLASSICAL_ERA_INDEX,

@@ -16,17 +16,18 @@ function StoreGreatBathRiverName(iX, iY, buildingType)
     Game:SetProperty("GreatBathRiverName", g_GreatBathRiverName)
 end
 
-function StoreWonderForCity(_, _, buildingType, playerID, cityID)
+function StoreWonderForCity(_, _, buildingTypeID, playerID, cityID)
     -- Is the new production a wonder?
-    local bInfo = GameInfo.Buildings[buildingType]
+    local bInfo = GameInfo.Buildings[buildingTypeID]
+    local buildingType = bInfo.BuildingType
     if bInfo and bInfo.IsWonder then
         -- Wonder added to the queue for the first time
         if not g_WondersByCity[cityID] then
-            g_WondersByCity[cityID] = prodType
+            g_WondersByCity[cityID] = buildingType
             Game:SetProperty("WondersByCity", g_WondersByCity)
             local pinID = ExposedMembers.MapPins.GetPinForWonderInCity(
                 cityID,
-                prodType
+                buildingType
            )
             ExposedMembers.MapPins.DeleteMapPin(playerID, pinID)
         end
@@ -38,8 +39,9 @@ Events.BuildingAddedToMap.Add(StoreWonderForCity)
 
 MUSEUM_OF_ART_INDEX = GameInfo.Buildings["BUILDING_MUSEUM_ART"].Index
 MUSEUM_OF_ARCHAEOLOGY_INDEX = GameInfo.Buildings["BUILDING_MUSEUM_ARTIFACT"].Index
+districtCountsPerEra = {}
 
-function StoreMuseumOfAntiquityCountIncrement(playerID, cityID)
+function IncrementBuildCount(playerID, cityID)
     local player = Players[playerID]
     if not player then return end
 
@@ -65,9 +67,11 @@ function StoreMuseumOfAntiquityCountIncrement(playerID, cityID)
             )
         end
     end
+
+
 end
 
-Events.CityProductionChanged.Add(StoreMuseumOfAntiquityCountIncrement)
+Events.CityProductionChanged.Add(IncrementBuildCount)
 
 local DA_VINCI_KEY = "GREAT_PERSON_INDIVIDUAL_LEONARDO_DA_VINCI"
 local DA_VINCI_GREAT_PERSON = GameInfo.GreatPersonIndividuals[DA_VINCI_KEY]

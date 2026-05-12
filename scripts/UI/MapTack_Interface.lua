@@ -39,6 +39,8 @@ function SyncPins()
     end
 end
 
+SyncPins()
+
 function GetPinForWonderInCity(cityID, buildingType)
     local cityMapPinPlots = PinsByCity[cityID]
     if cityMapPinPlots == nil then
