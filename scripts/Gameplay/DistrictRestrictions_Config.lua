@@ -46,8 +46,7 @@ alwaysRestrict = {
         ["BUILDING_JNR_MERCHANT_QUARTER"] = true,
         --  Tier 3
         ["BUILDING_JNR_COMMODITY_EXCHANGE"] = true,
-        --["BUILDING_JNR_MARKETING_AGENCY"] = true,
-        --["BUILDING_STOCK_EXCHANGE"] = true,
+        ["BUILDING_STOCK_EXCHANGE"] = true,
 
         -- DISTRICT_DIPLOMATIC_QUARTER
         --  Tier 1
@@ -67,6 +66,8 @@ alwaysRestrict = {
         -- DISTRICT_ENTERTAINMENT_COMPLEX
         --  Tier 1
         ["BUILDING_ARENA"] = true,
+        --  Tier 2
+        ["BUILDING_JNR_BOTANICAL_GARDEN"] = true,
         --  Tier 3
         ["BUILDING_JNR_CONVENTION"] = true,
 
@@ -113,6 +114,10 @@ alwaysRestrict = {
         ["BUILDING_JNR_ASSEMBLY"] = true,
         --  Tier 2
         ["BUILDING_JNR_CABINET"] = true,
+        -- Tier 3
+        ["BUILDING_JNR_OPERA"] = true,
+        -- Tier 4
+        ["BUILDING_BROADCAST_CENTER"] = true,
 
         -- DISTRICT_WATER_ENTERTAINMENT_COMPLEX
         --  Tier 1
