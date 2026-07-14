@@ -78,9 +78,10 @@ function restrictCivicSquareByTier(_, cityID, districtType, buildingType)
             return true
         end
 
-        local tierAllowed = g_TiersEnabled[tierNumber] or false
-        if tierAllowed then
-            return true
+        for _, tier in pairs(g_TiersEnabled) do
+            if tier == tierNumber then
+                return true
+            end
         end
 
         local wonder = ExposedMembers.MapPins.GetCityWonderFromMapPins(cityID)
