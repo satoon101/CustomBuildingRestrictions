@@ -88,15 +88,21 @@ Events.UnitGreatPersonActivated.Add(StoreDaVinciActivated)
 
 function StoreCivicTierEnabled(_, _, buildingTypeID)
     local buildingInfo = GameInfo.Buildings[buildingTypeID]
-    local districtType = buildingInfo.DistrictType
-    if districtType ~= "DISTRICT_THEATER" then return end
+    local districtType = buildingInfo.PrereqDistrict
+    if districtType ~= "DISTRICT_THEATER" then
+        return
+    end
 
     local buildingType = buildingInfo.BuildingType
     local tierNumber = getTierForBuilding(buildingType, districtType)
-    if tierNumber == nil or tierNumber == 1 then return end
+    if tierNumber == nil or tierNumber == 1 then
+        return
+    end
 
-    for tier in g_TiersEnabled do
-        if tier == tierNumber then return end
+    for _, tier in pairs(g_TiersEnabled) do
+        if tier == tierNumber then
+            return
+        end
     end
 
     table.insert(g_TiersEnabled, tierNumber)
@@ -116,7 +122,7 @@ g_MuseumOfAntiquityCityTable = {}
 g_MuseumOfAntiquityCityArray = {}
 
 function DetermineMuseumOfAntiquityCount(_, iCivic)
-    if g_MuseumOfAntiquityCount then
+    if g_MuseumOfAntiquityCount > 0 then
         return
     end
     if iCivic ~= CULTURAL_HERITAGE_INDEX then
