@@ -41,6 +41,8 @@ alwaysRestrict = {
         ["BUILDING_JNR_WHARF_TRADE"] = true,
 
         -- DISTRICT_COMMERCIAL_HUB
+        --  Tier 1
+        ["BUILDING_JNR_WAYSTATION"] = true,
         --  Tier 2
         ["BUILDING_JNR_GUILDHALL"] = true,
         ["BUILDING_JNR_MERCHANT_QUARTER"] = true,
