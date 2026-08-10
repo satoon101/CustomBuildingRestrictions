@@ -130,7 +130,8 @@ alwaysRestrict = {
         ["BUILDING_JNR_CRUISE_TERMINAL"] = true
     }
 }
-
+-- TODO: work on adding civic/tech restriction system
+-- TODO: work on adding this functionality
 districtCountRestrictions = {
     ["DISTRICT_CAMPUS"] = {
         [ANCIENT_ERA_INDEX] = 2,
@@ -202,7 +203,7 @@ eraConfigPerDistrict = {
     ["DISTRICT_COMMERCIAL_HUB"] = {
         ["0"] = CLASSICAL_ERA_INDEX,
         ["1"] = CLASSICAL_ERA_INDEX,
-        ["2"] = RENAISSANCE_ERA_INDEX,
+        ["2"] = INDUSTRIAL_ERA_INDEX,
         ["3"] = ATOMIC_ERA_INDEX
     },
     ["DISTRICT_DAM"] = {
@@ -248,9 +249,9 @@ eraConfigPerDistrict = {
     },
     ["DISTRICT_INDUSTRIAL_ZONE"] = {
         ["0"] = MEDIEVAL_ERA_INDEX,
-        ["1"] = MEDIEVAL_ERA_INDEX,
-        ["2"] = MEDIEVAL_ERA_INDEX,
-        ["3"] = MEDIEVAL_ERA_INDEX,
+        ["1"] = INDUSTRIAL_ERA_INDEX,
+        ["2"] = INDUSTRIAL_ERA_INDEX,
+        ["3"] = INDUSTRIAL_ERA_INDEX,
         ["4"] = INDUSTRIAL_ERA_INDEX,
         ["5"] = MODERN_ERA_INDEX,
         ["6"] = ATOMIC_ERA_INDEX
