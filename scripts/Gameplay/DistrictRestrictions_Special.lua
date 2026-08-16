@@ -78,10 +78,8 @@ function restrictCivicSquareByTier(_, cityID, districtType, buildingType)
             return true
         end
 
-        for _, tier in pairs(g_TiersEnabled) do
-            if tier == tierNumber then
-                return true
-            end
+        if g_TiersEnabled[tierNumber] == true then
+            return true
         end
 
         local wonder = ExposedMembers.MapPins.GetCityWonderFromMapPins(cityID)
@@ -103,22 +101,33 @@ function restrictCivicSquareByTier(_, cityID, districtType, buildingType)
     return false, nil
 end
 
+-- TODO:
+-- update all mods to save globals on "save" and load globals on "load" instead of "live"
+-- try to find consistent ways to store certain types of arrays
+-- array[key] = <value>
+-- array[key] = true
+-- array of items (not key/value pairs)
+-- find way to force gold/faith purchase screen to open or stay open on purchase
+
+-- add functionality to allow n number of building x for era y
+-- add functionality to auto purchase items for district in all cities
 function restrictCivicSquareMuseums(_, cityID, _, buildingType)
     if g_MuseumOfAntiquityCount == 0 then
         return true, "Prerequisite Civic has not been researched."
     end
 
     local cityCheck = g_MuseumOfAntiquityCityTable[cityID]
-    if cityCheck == nil then
+    if cityCheck ~= nil then
         return false, nil
     end
 
-    if #g_MuseumOfAntiquityCityArray >= g_MuseumOfAntiquityCount then
-        if buildingType == MUSEUM_OF_ARCHAEOLOGY_INDEX then
+    local buildingIndex = GameInfo.Buildings[buildingType].Index
+    if #g_MuseumOfAntiquityCityTable >= g_MuseumOfAntiquityCount then
+        if buildingIndex == MUSEUM_OF_ARCHAEOLOGY_INDEX then
             return true, "Number of museums allowed has been reached."
         end
     else
-        if buildingType == MUSEUM_OF_ART_INDEX then
+        if buildingIndex == MUSEUM_OF_ART_INDEX then
             return true, "Number of Archaeological Museums has not been met."
         end
     end

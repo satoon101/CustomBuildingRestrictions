@@ -60,10 +60,13 @@ function IncrementBuildCount(playerID, cityID)
         local cityCheck = g_MuseumOfAntiquityCityTable[cityID]
         if cityCheck == nil then
             g_MuseumOfAntiquityCityTable[cityID] = true
-            table.insert(g_MuseumOfAntiquityCityArray, cityID)
+            local keys = {}
+            for k, _ in pairs(g_MuseumOfAntiquityCityTable) do
+                table.insert(keys, tostring(k))
+            end
             Game.SetProperty(
                 MUSEUM_OF_ARCHAEOLOGY_ARRAY_KEY,
-                table.concat(g_MuseumOfAntiquityCityArray, ",")
+                table.concat(keys, ",")
             )
         end
     end
@@ -119,7 +122,6 @@ MUSEUM_OF_ARCHAEOLOGY_COUNT_KEY = "MUSEUM_OF_ARCHAEOLOGY_COUNT"
 MUSEUM_OF_ARCHAEOLOGY_ARRAY_KEY = "MUSEUM_OF_ARCHAEOLOGY_ARRAY"
 g_MuseumOfAntiquityCount = 0
 g_MuseumOfAntiquityCityTable = {}
-g_MuseumOfAntiquityCityArray = {}
 
 function DetermineMuseumOfAntiquityCount(_, iCivic)
     if g_MuseumOfAntiquityCount > 0 then
@@ -135,7 +137,7 @@ function DetermineMuseumOfAntiquityCount(_, iCivic)
     local iShipwreck = GameInfo.Resources["RESOURCE_SHIPWRECK"].Index
     for x = 0, iW - 1 do
         for y = 0, iH - 1 do
-            local pPlot = Map.GetPlot(x, y);
+            local pPlot = Map.GetPlot(x, y)
             local iResourceType = pPlot:GetResourceType()
             if iResourceType == iAntiquitySite or iResourceType == iShipwreck then
                 count = count + 1
@@ -143,7 +145,7 @@ function DetermineMuseumOfAntiquityCount(_, iCivic)
         end
     end
     g_MuseumOfAntiquityCount = math.ceil(count / 3)
-    Game.SetProperty(MUSEUM_OF_ARCHAEOLOGY_COUNT_KEY, count)
+    Game.SetProperty(MUSEUM_OF_ARCHAEOLOGY_COUNT_KEY, g_MuseumOfAntiquityCount)
 end
 
 Events.CivicCompleted.Add(DetermineMuseumOfAntiquityCount)
@@ -158,9 +160,6 @@ function OnLoadScreenClose()
             true,
             tonumber
         )
-        for k, _ in pairs(g_MuseumOfAntiquityCityTable) do
-            table.insert(g_MuseumOfAntiquityCityArray, k)
-        end
     end
     loadPropertyToTable(
         CIVIC_TIERS_ENABLED_KEY,

@@ -57,7 +57,7 @@ function getTierData()
     local data = {}
     for building in GameInfo.Buildings() do
         local districtType = building.PrereqDistrict
-        
+
         if districtType ~= nil then
             -- Initialize the district sub-table if it doesn't exist
             if not data[districtType] then
@@ -67,7 +67,7 @@ function getTierData()
             -- Calculate tier by tracing prerequisites
             local tier = 1
             local currentBuildingType = building.BuildingType
-            
+
             -- Trace back through BuildingPrereqs
             while currentBuildingType do
                 currentBuildingType = prereqData[currentBuildingType];
