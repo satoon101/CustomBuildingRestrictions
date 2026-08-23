@@ -13,8 +13,6 @@ function GetCityDamPlots(playerID, cityID)
     return GetCityRelatedPlotIndexesDistrictsAlternative(city, districtHash)
 end
 
-ExposedMembers.ProductionPanelHelpers.GetCityDamPlots = GetCityDamPlots
-
 VICTOR_INDEX = GameInfo.Governors["GOVERNOR_THE_DEFENDER"].Index
 AMANI_INDEX = GameInfo.Governors["GOVERNOR_THE_AMBASSADOR"].Index
 MOKSHA_INDEX = GameInfo.Governors["GOVERNOR_THE_CARDINAL"].Index
@@ -45,6 +43,29 @@ function CityHasStableGovernor(playerID, cityID)
     return stableGovernors[governor:GetType()] or false
 end
 
+function GetCityQueueBuildings(playerID, cityID)
+    local city = CityManager.GetCity(playerID, cityID)
+    local queue = city:GetBuildQueue()
+    local count = queue:GetSize()
+    local queueBuildings = {}
+    if count > 0 then
+        for index = 0, count - 1 do
+            local item = queue:GetAt(index)
+            local buildingIndex = item.BuildingType
+            if buildingIndex ~= nil then
+                queueBuildings[buildingIndex] = true
+            end
+        end
+    end
+    return queueBuildings
+end
+
+-- ===========================================================================
+--  Expose the functions to the Gameplay layer
+-- ===========================================================================
+
 ExposedMembers.ProductionPanelHelpers.CityHasStableGovernor = CityHasStableGovernor
+ExposedMembers.ProductionPanelHelpers.GetCityDamPlots = GetCityDamPlots
+ExposedMembers.ProductionPanelHelpers.GetCityQueueBuildings = GetCityQueueBuildings
 
 print("=== Custom District Rules (Helpers) Loaded ===")

@@ -5,10 +5,12 @@
 
 include("DistrictRestrictions_Config")
 
-playerUniqueDistricts = {}
+ExposedMembers.CustomDistrictRules = ExposedMembers.CustomDistrictRules or {}
 
-function getCityHasDistrict(playerID, cityDistricts, districtType)
-    local uniqueDistricts = playerUniqueDistricts[playerID]
+PlayerUniqueDistricts = {}
+
+function GetCityHasDistrict(playerID, cityDistricts, districtType)
+    local uniqueDistricts = PlayerUniqueDistricts[playerID]
     local checkDistrict = uniqueDistricts[districtType]
     if checkDistrict then
         districtType = checkDistrict
@@ -16,52 +18,54 @@ function getCityHasDistrict(playerID, cityDistricts, districtType)
     return cityDistricts:HasDistrict(GameInfo.Districts[districtType].Index)
 end
 
-function hasCityBuiltPrimaryDistricts(playerID, cityDistricts)
+function HasCityBuiltPrimaryDistricts(playerID, cityDistricts)
     if not (
-        getCityHasDistrict(playerID, cityDistricts, "DISTRICT_COMMERCIAL_HUB") or
-        getCityHasDistrict(playerID, cityDistricts, "DISTRICT_HARBOR")
+        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_COMMERCIAL_HUB") or
+        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_HARBOR")
     ) then
         return false
     end
 
-    if not getCityHasDistrict(playerID, cityDistricts, "DISTRICT_INDUSTRIAL_ZONE") then
+    if not GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_INDUSTRIAL_ZONE") then
         return false
     end
 
-    if not getCityHasDistrict(playerID, cityDistricts, "DISTRICT_THEATER") then
+    if not GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_THEATER") then
         return false
     end
 
     if not (
-        getCityHasDistrict(playerID, cityDistricts, "DISTRICT_ENTERTAINMENT_COMPLEX") or
-        getCityHasDistrict(playerID, cityDistricts, "DISTRICT_WATER_ENTERTAINMENT_COMPLEX")
+        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_ENTERTAINMENT_COMPLEX") or
+        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_WATER_ENTERTAINMENT_COMPLEX")
     ) then
         return false
     end
 
     if not (
-        getCityHasDistrict(playerID, cityDistricts, "DISTRICT_ENCAMPMENT") or
-        getCityHasDistrict(playerID, cityDistricts, "DISTRICT_CAMPUS") or
-        getCityHasDistrict(playerID, cityDistricts, "DISTRICT_HOLY_SITE")
+        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_ENCAMPMENT") or
+        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_CAMPUS") or
+        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_HOLY_SITE")
     ) then
         return false
     end
     return true
 end
 
-function getTierData()
+function GetTierData()
     local prereqData = {}
     for row in GameInfo.BuildingPrereqs() do
         prereqData[row.Building] = row.PrereqBuilding
     end
-    local data = {}
+    local dataByBuildingType = {}
+    local dataByTier = {}
     for building in GameInfo.Buildings() do
         local districtType = building.PrereqDistrict
 
         if districtType ~= nil then
             -- Initialize the district sub-table if it doesn't exist
-            if not data[districtType] then
-                data[districtType] = {}
+            if not dataByBuildingType[districtType] then
+                dataByBuildingType[districtType] = {}
+                dataByTier[districtType] = {}
             end
 
             -- Calculate tier by tracing prerequisites
@@ -76,21 +80,44 @@ function getTierData()
                 end;
             end
 
-            -- Store the result: data["DISTRICT_CAMPUS"]["BUILDING_LIBRARY"] = 1
-            data[districtType][building.BuildingType] = tier
+            -- Store the result: dataByBuildingType["DISTRICT_CAMPUS"]["BUILDING_LIBRARY"] = 1
+            -- Store the result: dataByBuildingType["DISTRICT_CAMPUS"]["BUILDING_LIBRARY"] = 1
+            dataByBuildingType[districtType][building.BuildingType] = tier
+
+            if dataByTier[districtType][tier] == nil then
+                dataByTier[districtType][tier] = {}
+            end
+            -- Store the result: dataByTier["DISTRICT_CAMPUS"][1] = {"BUILDING_LIBRARY", "BUILDING_SHCOOL"}
+            table.insert(dataByTier[districtType][tier], building.BuildingType)
         end
     end
-    return data
+    return dataByBuildingType, dataByTier
 end
 
-tierData = getTierData()
+TierByBuildingType, BuildingTypesByTier = GetTierData()
 
-function getTierForBuilding(buildingType, districtType)
+function YieldBuildingTypeByTier(districtType)
+    local tierData = BuildingTypesByTier[districtType]
+    if tierData == nil then
+        return
+    end
+
+    return coroutine.wrap(function()
+        local count = #tierData
+        for i = 1, count do
+            for _, row in ipairs(tierData[i]) do
+                coroutine.yield(row)
+            end
+        end
+    end)
+end
+
+function GetTierForBuilding(buildingType, districtType)
     if districtType == nil then
         districtType = GameInfo.Buildings[buildingType].DistrictType
     end
 
-    local districtTierData = tierData[districtType]
+    local districtTierData = TierByBuildingType[districtType]
     if districtTierData ~= nil then
         return districtTierData[buildingType]
     end
@@ -98,7 +125,7 @@ function getTierForBuilding(buildingType, districtType)
     return nil
 end
 
-function getEraForDistrict(districtType)
+function GetEraForDistrict(districtType)
     local districtEraData = eraConfigPerDistrict[districtType]
     if not districtEraData then
         return nil
@@ -107,7 +134,7 @@ function getEraForDistrict(districtType)
     return districtEraData["0"]
 end
 
-function getEraForBuilding(districtType, buildingType)
+function GetEraForBuilding(districtType, buildingType)
     local districtEraData = eraConfigPerDistrict[districtType]
     if not districtEraData then
         return nil
@@ -117,7 +144,7 @@ function getEraForBuilding(districtType, buildingType)
     if buildingRestriction ~= nil then
         return buildingRestriction
     end
-    local tierNumber = getTierForBuilding(buildingType, districtType)
+    local tierNumber = GetTierForBuilding(buildingType, districtType)
     if tierNumber == nil then
         return nil
     end
@@ -125,8 +152,8 @@ function getEraForBuilding(districtType, buildingType)
     return districtEraData[tostring(tierNumber)]
 end
 
-function getPlayerUniqueDistricts(playerID)
-    data = {}
+function GetPlayerUniqueDistricts(playerID)
+    local data = {}
     local playerConfig = PlayerConfigurations[playerID]
     local civType = playerConfig:GetCivilizationTypeName()
 
@@ -145,7 +172,7 @@ function getPlayerUniqueDistricts(playerID)
     return data
 end
 
-function loadPropertyToTable(propertyKey, tableObject, value, mutatingFunction)
+function LoadPropertyToTable(propertyKey, tableObject, value, mutatingFunction)
     local dataStr = Game.GetProperty(propertyKey)
     if dataStr ~= nil then
         for id in string.gmatch(dataStr, "([^,]+)") do
@@ -157,13 +184,13 @@ function loadPropertyToTable(propertyKey, tableObject, value, mutatingFunction)
     end
 end
 
-stableGovernorBuildings = {
+StableGovernorBuildings = {
     ["BUILDING_JNR_MINT"] = true,
     ["BUILDING_JNR_ALTAR"] = true
 }
 
-function restrictForStableGovernor(playerID, cityID, buildingType)
-    local buildingCheck = stableGovernorBuildings[buildingType]
+function RestrictForStableGovernor(playerID, cityID, buildingType)
+    local buildingCheck = StableGovernorBuildings[buildingType]
     local hasStableGovernor = ExposedMembers.ProductionPanelHelpers.CityHasStableGovernor(
         playerID,
         cityID
@@ -181,5 +208,19 @@ function restrictForStableGovernor(playerID, cityID, buildingType)
     end
     return nil, nil
 end
+
+function GetWonderFromCity(cityID)
+    local wonderName = g_WondersByCity[cityID]
+    if wonderName == nil then
+        wonderName = ExposedMembers.MapPins.GetCityWonderFromMapPins(cityID)
+    end
+end
+
+-- ===========================================================================
+--  Expose the functions to the UI layer
+-- ===========================================================================
+
+ExposedMembers.CustomDistrictRules.GetWonderFromCity = GetWonderFromCity
+ExposedMembers.CustomDistrictRules.YieldBuildingTypeByTier = YieldBuildingTypeByTier
 
 print("=== Custom District Rules (Helpers) Loaded ===")

@@ -8,11 +8,9 @@ print("=== Custom District Rules (Gameplay) Loading ===")
 include("DistrictRestrictions_Events")
 include("DistrictRestrictions_Helpers")
 
-ExposedMembers.CustomDistrictRules = ExposedMembers.CustomDistrictRules or {}
-
 function IsDistrictBlocked(playerID, cityID, districtType)
-    if playerUniqueDistricts[playerID] == nil then
-        playerUniqueDistricts[playerID] = getPlayerUniqueDistricts(playerID)
+    if PlayerUniqueDistricts[playerID] == nil then
+        PlayerUniqueDistricts[playerID] = GetPlayerUniqueDistricts(playerID)
     end
 
     -- Disallow if always restricted
@@ -23,13 +21,13 @@ function IsDistrictBlocked(playerID, cityID, districtType)
 
     -- Disallow districts based on Era
     local currentEraIndex = Game.GetEras():GetCurrentEra()
-    local requiredEraIndex = getEraForDistrict(districtType)
+    local requiredEraIndex = GetEraForDistrict(districtType)
     if requiredEraIndex ~= nil and currentEraIndex < requiredEraIndex then
         local eraName = GameInfo.Eras[requiredEraIndex].Name
         return true, "Disabled until the " .. Locale.Lookup(eraName) .. "."
     end
 
-    local baseDistrictType = playerUniqueDistricts[playerID][districtType]
+    local baseDistrictType = PlayerUniqueDistricts[playerID][districtType]
     if baseDistrictType == nil then
         baseDistrictType = districtType
     end
@@ -49,8 +47,8 @@ function IsDistrictBlocked(playerID, cityID, districtType)
             ["DISTRICT_HARBOR"] = "DISTRICT_COMMERCIAL_HUB",
         }
         local compareDistrict = compareDistricts[baseDistrictType]
-        if getCityHasDistrict(playerID, cityDistricts, compareDistrict) then
-            if not hasCityBuiltPrimaryDistricts(playerID, cityDistricts) then
+        if GetCityHasDistrict(playerID, cityDistricts, compareDistrict) then
+            if not HasCityBuiltPrimaryDistricts(playerID, cityDistricts) then
                 return true, "Disabled until all primary districts have been built."
             end
         end
@@ -69,12 +67,12 @@ function IsDistrictBlocked(playerID, cityID, districtType)
             "DISTRICT_CAMPUS",
             "DISTRICT_HOLY_SITE"
         }) do
-            if getCityHasDistrict(playerID, cityDistricts, checkDistrictType) then
+            if GetCityHasDistrict(playerID, cityDistricts, checkDistrictType) then
                 foundDistrict = true
             end
         end
         if foundDistrict then
-            if not hasCityBuiltPrimaryDistricts(playerID, cityDistricts) then
+            if not HasCityBuiltPrimaryDistricts(playerID, cityDistricts) then
                 return true, "Disabled until all primary districts have been built."
             end
         end
@@ -83,7 +81,10 @@ function IsDistrictBlocked(playerID, cityID, districtType)
     -- Disallow Dam being built on the same river as the Great Bath
     if baseDistrictType == "DISTRICT_DAM" and g_GreatBathRiverName ~= nil then
         local foundValidDamPlot = false
-        local plotIDsToCheck = ExposedMembers.ProductionPanelHelpers.GetCityDamPlots(playerID, cityID)
+        local plotIDsToCheck = ExposedMembers.ProductionPanelHelpers.GetCityDamPlots(
+            playerID,
+            cityID
+        )
         for _, plotID in ipairs(plotIDsToCheck) do
             local plot = Map.GetPlotByIndex(plotID)
             local riverName = RiverManager.GetRiverName(plot)
@@ -111,7 +112,9 @@ function IsDistrictBlocked(playerID, cityID, districtType)
         --  for a specific wonder
         local building = GameInfo.Buildings[districtMapPinRestricted]
         if building ~= nil and building.IsWonder then
-            local cityWonder = ExposedMembers.MapPins.GetCityWonderFromMapPins(cityID)
+            local cityWonder = ExposedMembers.MapPins.GetCityWonderFromMapPins(
+                cityID
+            )
             if cityWonder ~= districtMapPinRestricted then
                 local name = Locale.Lookup(GameInfo.Buildings[districtMapPinRestricted].Name)
                 return true, "District only allowed for city marked to build " .. name
@@ -151,7 +154,7 @@ function IsBuildingBlocked(playerID, cityID, districtType, buildingType, isWonde
 
     -- Disallow buildings based on era by tier
     local currentEraIndex = Game.GetEras():GetCurrentEra()
-    local requiredEraIndex = getEraForBuilding(districtType, buildingType)
+    local requiredEraIndex = GetEraForBuilding(districtType, buildingType)
     if requiredEraIndex ~= nil and currentEraIndex < requiredEraIndex then
         local eraName = GameInfo.Eras[requiredEraIndex].Name
         return true, "Disabled until the " .. Locale.Lookup(eraName) .. "."
@@ -181,7 +184,7 @@ function IsBuildingBlocked(playerID, cityID, districtType, buildingType, isWonde
 end
 
 -- ===========================================================================
---  Expose the function to the UI layer
+--  Expose the functions to the UI layer
 -- ===========================================================================
 
 ExposedMembers.CustomDistrictRules.IsDistrictBlocked = IsDistrictBlocked

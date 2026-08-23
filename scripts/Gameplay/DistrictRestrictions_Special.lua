@@ -19,7 +19,7 @@ end
 GUILDS_INDEX = GameInfo.Civics["CIVIC_GUILDS"].Index
 
 function restrictCommercialTier1(playerID, cityID, _, buildingType)
-    local bCheck, strMessage = restrictForStableGovernor(
+    local bCheck, strMessage = RestrictForStableGovernor(
         playerID,
         cityID,
         buildingType
@@ -47,7 +47,7 @@ function restrictCommercialTier1(playerID, cityID, _, buildingType)
 end
 
 function restrictHolySiteTier1(playerID, cityID, _, buildingType)
-    return restrictForStableGovernor(
+    return RestrictForStableGovernor(
         playerID,
         cityID,
         buildingType
@@ -73,7 +73,7 @@ g_TiersEnabled = {}
 
 function restrictCivicSquareByTier(_, cityID, districtType, buildingType)
     local function getBuildingIsAllowed()
-        local tierNumber = getTierForBuilding(buildingType, districtType)
+        local tierNumber = GetTierForBuilding(buildingType, districtType)
         if tierNumber == nil then
             return true
         end

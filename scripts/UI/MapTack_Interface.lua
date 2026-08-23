@@ -59,8 +59,6 @@ function GetPinForWonderInCity(cityID, buildingType)
     return nil
 end
 
-ExposedMembers.MapPins.GetPinForWonderInCity = GetPinForWonderInCity
-
 function GetCityWonderFromMapPins(cityID)
     local cityMapPinPlots = PinsByCity[cityID]
     if cityMapPinPlots == nil then
@@ -80,7 +78,6 @@ function GetCityWonderFromMapPins(cityID)
     return nil
 end
 
-ExposedMembers.MapPins.GetCityWonderFromMapPins = GetCityWonderFromMapPins
 
 function IsDistrictPinInCity(cityID, districtType)
     local cityMapPinPlots = PinsByCity[cityID]
@@ -100,7 +97,6 @@ function IsDistrictPinInCity(cityID, districtType)
     return false
 end
 
-ExposedMembers.MapPins.IsDistrictPinInCity = IsDistrictPinInCity
 
 function DeleteMapPin(playerID, pinID)
     PlayerConfigurations[playerID]:DeleteMapPin(pinID)
@@ -108,9 +104,17 @@ function DeleteMapPin(playerID, pinID)
     SyncPins()
 end
 
-ExposedMembers.MapPins.DeleteMapPin = DeleteMapPin
 
 Events.LoadGameViewStateDone.Add(SyncPins)
 Events.CityAddedToMap.Add(SyncPins)
+
+-- ===========================================================================
+--  Expose the functions to the Gameplay layer
+-- ===========================================================================
+
+ExposedMembers.MapPins.DeleteMapPin = DeleteMapPin
+ExposedMembers.MapPins.GetCityWonderFromMapPins = GetCityWonderFromMapPins
+ExposedMembers.MapPins.GetPinForWonderInCity = GetPinForWonderInCity
+ExposedMembers.MapPins.IsDistrictPinInCity = IsDistrictPinInCity
 
 print("=== Custom District Rules (MapTack) Loaded ===")

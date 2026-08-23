@@ -28,7 +28,7 @@ function StoreWonderForCity(_, _, buildingTypeID, playerID, cityID)
             local pinID = ExposedMembers.MapPins.GetPinForWonderInCity(
                 cityID,
                 buildingType
-           )
+            )
             ExposedMembers.MapPins.DeleteMapPin(playerID, pinID)
         end
     end
@@ -42,6 +42,9 @@ MUSEUM_OF_ARCHAEOLOGY_INDEX = GameInfo.Buildings["BUILDING_MUSEUM_ARTIFACT"].Ind
 districtCountsPerEra = {}
 
 function IncrementBuildCount(playerID, cityID)
+    -- TODO: verify this works to add the city to the array
+    --       work on removing the city if the production is
+    --       changed away before any progress made
     local player = Players[playerID]
     if not player then return end
 
@@ -70,11 +73,52 @@ function IncrementBuildCount(playerID, cityID)
             )
         end
     end
-
-
 end
 
 Events.CityProductionChanged.Add(IncrementBuildCount)
+
+function queueTest(playerID, cityID, changeType, queueIndex)
+    print(playerID, cityID, changeType, queueIndex)
+    local player = Players[playerID]
+    if not player then return end
+
+    if not player:IsHuman() then return end
+
+    local cityQueueBuildings = ExposedMembers.ProductionPanelHelpers.GetCityQueueBuildings(
+        playerID,
+        cityID
+    )
+    local cityCheck = g_MuseumOfAntiquityCityTable[cityID]
+    local needsSaved = false
+    if cityQueueBuildings[MUSEUM_OF_ARCHAEOLOGY_INDEX] == true then
+        if cityCheck == nil then
+            g_MuseumOfAntiquityCityTable[cityID] = true
+            needsSaved = true
+        end
+    elseif cityCheck == true then
+        local city = player:GetCities():FindID(cityID)
+        local buildings = city:GetBuildings()
+        local hasBuilding = buildings:HasBuilding(MUSEUM_OF_ARCHAEOLOGY_INDEX)
+        local queue = city:GetBuildQueue()
+        local hasBuildingProgress = queue:HasBuildingProductionProgress(MUSEUM_OF_ARCHAEOLOGY_INDEX)
+        if hasBuilding == false and hasBuildingProgress == false then
+            g_MuseumOfAntiquityCityTable[cityID] = nil
+            needsSaved = true
+        end
+        if needsSaved then
+            local keys = {}
+            for k, _ in pairs(g_MuseumOfAntiquityCityTable) do
+                table.insert(keys, tostring(k))
+            end
+            Game.SetProperty(
+                MUSEUM_OF_ARCHAEOLOGY_ARRAY_KEY,
+                table.concat(keys, ",")
+            )
+        end
+    end
+end
+
+Events.CityProductionQueueChanged.Add(queueTest)
 
 local DA_VINCI_KEY = "GREAT_PERSON_INDIVIDUAL_LEONARDO_DA_VINCI"
 local DA_VINCI_GREAT_PERSON = GameInfo.GreatPersonIndividuals[DA_VINCI_KEY]
@@ -97,7 +141,7 @@ function StoreCivicTierEnabled(_, _, buildingTypeID)
     end
 
     local buildingType = buildingInfo.BuildingType
-    local tierNumber = getTierForBuilding(buildingType, districtType)
+    local tierNumber = GetTierForBuilding(buildingType, districtType)
     if tierNumber == nil or tierNumber == 1 then
         return
     end
@@ -154,14 +198,14 @@ function OnLoadScreenClose()
     g_DaVinciActivated = Game.GetProperty(DA_VINCI_KEY) or false
     g_MuseumOfAntiquityCount = Game.GetProperty(MUSEUM_OF_ARCHAEOLOGY_COUNT_KEY) or 0
     if g_MuseumOfAntiquityCount then
-        loadPropertyToTable(
+        LoadPropertyToTable(
             MUSEUM_OF_ARCHAEOLOGY_ARRAY_KEY,
             g_MuseumOfAntiquityCityTable,
             true,
             tonumber
         )
     end
-    loadPropertyToTable(
+    LoadPropertyToTable(
         CIVIC_TIERS_ENABLED_KEY,
         g_TiersEnabled,
         true,
