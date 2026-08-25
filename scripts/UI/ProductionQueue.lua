@@ -81,7 +81,7 @@ local function IncrementActivePromotionClassCount(playerID, cityID, prodType, pr
         return
     end
 
-    local city = player:GetCities():FindID(cityID)
+    local city = CityManager.GetCity(playerID, cityID)
     local queue = city:GetBuildQueue()
     print("CityProductionCompleted:", Locale.Lookup(city:GetName()), queue:GetAt(0), queue:GetAt(1))
     if prodType == QUEUE_BUILD_UNIT_TYPE then

@@ -35,10 +35,13 @@
         </ReplaceUIScript>
 
         <ImportFiles id="CustomProductionPanelHelpers">
+            <File>scripts/Gameplay/DistrictRestrictions_BuildingFunctions.lua</File>
             <File>scripts/Gameplay/DistrictRestrictions_Config.lua</File>
+            <File>scripts/Gameplay/DistrictRestrictions_Constants.lua</File>
+            <File>scripts/Gameplay/DistrictRestrictions_DistrictFunctions.lua</File>
             <File>scripts/Gameplay/DistrictRestrictions_Events.lua</File>
             <File>scripts/Gameplay/DistrictRestrictions_Helpers.lua</File>
-            <File>scripts/Gameplay/DistrictRestrictions_Special.lua</File>
+            <File>scripts/Gameplay/DistrictRestrictions_GlobalObjects.lua</File>
             <File>scripts/UI/MapTack_Interface.lua</File>
             <File>scripts/UI/ProductionPanel_Helpers.lua</File>
             <File>scripts/UI/ProductionQueue_Helpers.lua</File>
@@ -47,10 +50,13 @@
 
     <Files>
         <File>scripts/Gameplay/DistrictRestrictions.lua</File>
+        <File>scripts/Gameplay/DistrictRestrictions_BuildingFunctions.lua</File>
         <File>scripts/Gameplay/DistrictRestrictions_Config.lua</File>
+        <File>scripts/Gameplay/DistrictRestrictions_Constants.lua</File>
+        <File>scripts/Gameplay/DistrictRestrictions_DistrictFunctions.lua</File>
         <File>scripts/Gameplay/DistrictRestrictions_Events.lua</File>
         <File>scripts/Gameplay/DistrictRestrictions_Helpers.lua</File>
-        <File>scripts/Gameplay/DistrictRestrictions_Special.lua</File>
+        <File>scripts/Gameplay/DistrictRestrictions_GlobalObjects.lua</File>
         <File>scripts/UI/ProductionPanel_Helpers.lua</File>
         <File>scripts/UI/MapPinPopup_RefreshOnOk.lua</File>
         <File>scripts/UI/MapTack_Interface.lua</File>

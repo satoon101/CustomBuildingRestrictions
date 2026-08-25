@@ -6,9 +6,7 @@
 ExposedMembers.ProductionPanelHelpers = ExposedMembers.ProductionPanelHelpers or {}
 
 function GetCityDamPlots(playerID, cityID)
-    local player = Players[playerID]
-    local cities = player:GetCities()
-    local city = cities:FindID(cityID)
+    local city = CityManager.GetCity(playerID, cityID)
     local districtHash = GameInfo.Districts["DISTRICT_DAM"].Hash
     return GetCityRelatedPlotIndexesDistrictsAlternative(city, districtHash)
 end
@@ -32,9 +30,7 @@ stableGovernors = {
 }
 
 function CityHasStableGovernor(playerID, cityID)
-    local player = Players[playerID]
-    local cities = player:GetCities()
-    local city = cities:FindID(cityID)
+    local city = CityManager.GetCity(playerID, cityID)
     local governor = city:GetAssignedGovernor()
     if governor == nil then
         return false
@@ -60,10 +56,17 @@ function GetCityQueueBuildings(playerID, cityID)
     return queueBuildings
 end
 
+function CanCityBuildBuilding(playerID, cityID, buildingType)
+    local city = CityManager.GetCity(playerID, cityID)
+    local queue = city:GetBuildQueue()
+    return queue:CanProduce(buildingType)
+end
+
 -- ===========================================================================
 --  Expose the functions to the Gameplay layer
 -- ===========================================================================
 
+ExposedMembers.ProductionPanelHelpers.CanCityBuildBuilding = CanCityBuildBuilding
 ExposedMembers.ProductionPanelHelpers.CityHasStableGovernor = CityHasStableGovernor
 ExposedMembers.ProductionPanelHelpers.GetCityDamPlots = GetCityDamPlots
 ExposedMembers.ProductionPanelHelpers.GetCityQueueBuildings = GetCityQueueBuildings

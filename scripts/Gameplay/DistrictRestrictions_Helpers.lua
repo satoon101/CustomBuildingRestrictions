@@ -4,13 +4,18 @@
 -- ===========================================================================
 
 include("DistrictRestrictions_Config")
+include("DistrictRestrictions_Constants")
+include("DistrictRestrictions_GlobalObjects")
 
 ExposedMembers.CustomDistrictRules = ExposedMembers.CustomDistrictRules or {}
 
 PlayerUniqueDistricts = {}
+PlayerUniqueBuildings = {}
 
-function GetCityHasDistrict(playerID, cityDistricts, districtType)
-    local uniqueDistricts = PlayerUniqueDistricts[playerID]
+function GetCityHasDistrict(playerID, cityID, districtType)
+    local city = CityManager.GetCity(playerID, cityID)
+    local cityDistricts = city:GetDistricts()
+    local uniqueDistricts = PlayerUniqueDistricts[playerID] or {}
     local checkDistrict = uniqueDistricts[districtType]
     if checkDistrict then
         districtType = checkDistrict
@@ -18,83 +23,21 @@ function GetCityHasDistrict(playerID, cityDistricts, districtType)
     return cityDistricts:HasDistrict(GameInfo.Districts[districtType].Index)
 end
 
-function HasCityBuiltPrimaryDistricts(playerID, cityDistricts)
-    if not (
-        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_COMMERCIAL_HUB") or
-        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_HARBOR")
-    ) then
-        return false
-    end
-
-    if not GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_INDUSTRIAL_ZONE") then
-        return false
-    end
-
-    if not GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_THEATER") then
-        return false
-    end
-
-    if not (
-        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_ENTERTAINMENT_COMPLEX") or
-        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_WATER_ENTERTAINMENT_COMPLEX")
-    ) then
-        return false
-    end
-
-    if not (
-        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_ENCAMPMENT") or
-        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_CAMPUS") or
-        GetCityHasDistrict(playerID, cityDistricts, "DISTRICT_HOLY_SITE")
-    ) then
-        return false
+function HasCityBuiltPrimaryDistricts(playerID, cityID)
+    for _, districts in pairs(CityDistrictsByType) do
+        local purpose_missing = true
+        for _, district in ipairs(districts) do
+            if GetCityHasDistrict(playerID, cityID, district) then
+                purpose_missing = false
+                break
+            end
+        end
+        if purpose_missing then
+            return false
+        end
     end
     return true
 end
-
-function GetTierData()
-    local prereqData = {}
-    for row in GameInfo.BuildingPrereqs() do
-        prereqData[row.Building] = row.PrereqBuilding
-    end
-    local dataByBuildingType = {}
-    local dataByTier = {}
-    for building in GameInfo.Buildings() do
-        local districtType = building.PrereqDistrict
-
-        if districtType ~= nil then
-            -- Initialize the district sub-table if it doesn't exist
-            if not dataByBuildingType[districtType] then
-                dataByBuildingType[districtType] = {}
-                dataByTier[districtType] = {}
-            end
-
-            -- Calculate tier by tracing prerequisites
-            local tier = 1
-            local currentBuildingType = building.BuildingType
-
-            -- Trace back through BuildingPrereqs
-            while currentBuildingType do
-                currentBuildingType = prereqData[currentBuildingType];
-                if currentBuildingType ~= nil then
-                    tier = tier + 1;
-                end;
-            end
-
-            -- Store the result: dataByBuildingType["DISTRICT_CAMPUS"]["BUILDING_LIBRARY"] = 1
-            -- Store the result: dataByBuildingType["DISTRICT_CAMPUS"]["BUILDING_LIBRARY"] = 1
-            dataByBuildingType[districtType][building.BuildingType] = tier
-
-            if dataByTier[districtType][tier] == nil then
-                dataByTier[districtType][tier] = {}
-            end
-            -- Store the result: dataByTier["DISTRICT_CAMPUS"][1] = {"BUILDING_LIBRARY", "BUILDING_SHCOOL"}
-            table.insert(dataByTier[districtType][tier], building.BuildingType)
-        end
-    end
-    return dataByBuildingType, dataByTier
-end
-
-TierByBuildingType, BuildingTypesByTier = GetTierData()
 
 function YieldBuildingTypeByTier(districtType)
     local tierData = BuildingTypesByTier[districtType]
@@ -112,46 +55,6 @@ function YieldBuildingTypeByTier(districtType)
     end)
 end
 
-function GetTierForBuilding(buildingType, districtType)
-    if districtType == nil then
-        districtType = GameInfo.Buildings[buildingType].DistrictType
-    end
-
-    local districtTierData = TierByBuildingType[districtType]
-    if districtTierData ~= nil then
-        return districtTierData[buildingType]
-    end
-
-    return nil
-end
-
-function GetEraForDistrict(districtType)
-    local districtEraData = eraConfigPerDistrict[districtType]
-    if not districtEraData then
-        return nil
-    end
-
-    return districtEraData["0"]
-end
-
-function GetEraForBuilding(districtType, buildingType)
-    local districtEraData = eraConfigPerDistrict[districtType]
-    if not districtEraData then
-        return nil
-    end
-
-    local buildingRestriction = districtEraData[buildingType]
-    if buildingRestriction ~= nil then
-        return buildingRestriction
-    end
-    local tierNumber = GetTierForBuilding(buildingType, districtType)
-    if tierNumber == nil then
-        return nil
-    end
-
-    return districtEraData[tostring(tierNumber)]
-end
-
 function GetPlayerUniqueDistricts(playerID)
     local data = {}
     local playerConfig = PlayerConfigurations[playerID]
@@ -161,7 +64,7 @@ function GetPlayerUniqueDistricts(playerID)
         local traitType = GameInfo.Districts[row.CivUniqueDistrictType].TraitType
         for civTraitRow in GameInfo.CivilizationTraits() do
             if (
-                civTraitRow.CivilizationType == civType and
+                civType == civTraitRow.CivilizationType and
                 traitType == civTraitRow.TraitType
             ) then
                 data[row.ReplacesDistrictType] = row.CivUniqueDistrictType
@@ -172,49 +75,66 @@ function GetPlayerUniqueDistricts(playerID)
     return data
 end
 
-function LoadPropertyToTable(propertyKey, tableObject, value, mutatingFunction)
-    local dataStr = Game.GetProperty(propertyKey)
-    if dataStr ~= nil then
-        for id in string.gmatch(dataStr, "([^,]+)") do
-            if mutatingFunction ~= nil then
-                id = mutatingFunction(id)
+function GetPlayerUniqueBuildings(playerID)
+    local data = {}
+    local playerConfig = PlayerConfigurations[playerID]
+    local civType = playerConfig:GetCivilizationTypeName()
+
+    for row in GameInfo.BuildingReplaces() do
+        local traitType = GameInfo.Buildings[row.CivUniqueBuildingType].TraitType
+        if traitType == nil then
+            data[row.CivUniqueBuildingType] = row.ReplacesBuildingType
+        end
+        for civTraitRow in GameInfo.CivilizationTraits() do
+            if (
+                civType == civTraitRow.CivilizationType and
+                traitType == civTraitRow.TraitType
+            ) then
+                data[row.CivUniqueBuildingType] = row.ReplacesBuildingType
             end
-            tableObject[id] = value
         end
     end
+    return data
 end
 
-StableGovernorBuildings = {
-    ["BUILDING_JNR_MINT"] = true,
-    ["BUILDING_JNR_ALTAR"] = true
-}
-
-function RestrictForStableGovernor(playerID, cityID, buildingType)
-    local buildingCheck = StableGovernorBuildings[buildingType]
-    local hasStableGovernor = ExposedMembers.ProductionPanelHelpers.CityHasStableGovernor(
-        playerID,
-        cityID
-    )
-    if hasStableGovernor then
-        if buildingCheck then
-            return false, nil
-        else
-            return true, "Restricted due to stable governor."
-        end
-    else
-        if buildingCheck then
-            return true, "Only allowed for cities with a stable governor."
-        end
-    end
-    return nil, nil
-end
-
-function GetWonderFromCity(cityID)
-    local wonderName = g_WondersByCity[cityID]
+function GetWonderFromCity(playerID, cityID)
+    local wonderName = WondersByCity[playerID] or {}
+    wonderName = wonderName[cityID]
     if wonderName == nil then
-        wonderName = ExposedMembers.MapPins.GetCityWonderFromMapPins(cityID)
+        wonderName = ExposedMembers.MapPins.GetCityWonderFromMapPins(playerID, cityID)
     end
 end
+
+function GetCountOfAntiquitySitesOnMap()
+    local iW, iH = Map.GetGridSize()
+    local count = 0
+    for x = 0, iW - 1 do
+        for y = 0, iH - 1 do
+            local pPlot = Map.GetPlot(x, y)
+            local iResourceType = pPlot:GetResourceType()
+            if iResourceType == ANTIQUITY_SITE_INDEX or iResourceType == SHIPWRECK_INDEX then
+                count = count + 1
+            end
+        end
+    end
+    return count
+end
+
+--function GetCountOfExistingArtifacts()
+--    local count = 0
+--    for _, player in ipairs(Players) do
+--        if player:IsAlive() then
+--            local cities = player:GetCities()
+--            for _, city in cities:Members() do
+--                local buildings = city:GetBuildings()
+--                if buildings:HasBuilding(MUSEUM_OF_ARCHAEOLOGY_INDEX) then
+--                    local slot_count = buildings:GetNumGreatWorkSlots()
+--                    for index = 0,
+--                end
+--            end
+--        end
+--    end
+--end
 
 -- ===========================================================================
 --  Expose the functions to the UI layer

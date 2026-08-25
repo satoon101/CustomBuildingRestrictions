@@ -3,45 +3,96 @@
 --  Event hooks for storing data related to district restrictions.
 -- ===========================================================================
 
-g_GreatBathRiverName = Game:GetProperty("GreatBathRiverName") or nil
-g_WondersByCity = Game:GetProperty("WondersByCity") or {}
-WONDER_DISTRICT_INDEX = GameInfo.Districts["DISTRICT_WONDER"].Index
-GREAT_BATH_BUILDING_INDEX = GameInfo.Buildings["BUILDING_GREAT_BATH"].Index
+include("DistrictRestrictions_Constants")
+include("DistrictRestrictions_GlobalObjects")
+include("DistrictRestrictions_Helpers")
 
-function StoreGreatBathRiverName(iX, iY, buildingType)
-    if g_GreatBathRiverName ~= nil then return end
-    if buildingType ~= GREAT_BATH_BUILDING_INDEX then return end
-    local plot = Map.GetPlot(iX, iY)
-    g_GreatBathRiverName = RiverManager.GetRiverName(plot)
-    Game:SetProperty("GreatBathRiverName", g_GreatBathRiverName)
-end
-
-function StoreWonderForCity(_, _, buildingTypeID, playerID, cityID)
+------------------------------------------------------------------------------
+-- CITY WONDERS EVENTS
+------------------------------------------------------------------------------
+-- When a Wonder is placed, store it with its city
+Events.BuildingAddedToMap.Add(function(_, _, buildingTypeID, playerID, cityID)
     -- Is the new production a wonder?
     local bInfo = GameInfo.Buildings[buildingTypeID]
     local buildingType = bInfo.BuildingType
     if bInfo and bInfo.IsWonder then
         -- Wonder added to the queue for the first time
-        if not g_WondersByCity[cityID] then
-            g_WondersByCity[cityID] = buildingType
-            Game:SetProperty("WondersByCity", g_WondersByCity)
+        if WondersByCity[playerID] == nil then
+            WondersByCity[playerID] = {}
+        end
+        if WondersByCity[playerID][cityID] == nil then
+            WondersByCity[playerID][cityID] = buildingType
             local pinID = ExposedMembers.MapPins.GetPinForWonderInCity(
+                playerID,
                 cityID,
                 buildingType
             )
             ExposedMembers.MapPins.DeleteMapPin(playerID, pinID)
         end
     end
-end
+end)
 
-Events.BuildingAddedToMap.Add(StoreGreatBathRiverName)
-Events.BuildingAddedToMap.Add(StoreWonderForCity)
+------------------------------------------------------------------------------
+-- GREAT BATH RIVER EVENTS
+------------------------------------------------------------------------------
+-- Store the Name of the river where the Great Bath was placed
+Events.BuildingAddedToMap.Add(function(iX, iY, buildingType)
+    if GreatBathRiverName ~= nil then return end
+    if buildingType ~= GREAT_BATH_BUILDING_INDEX then return end
+    local plot = Map.GetPlot(iX, iY)
+    GreatBathRiverName = RiverManager.GetRiverName(plot)
+end)
 
-MUSEUM_OF_ART_INDEX = GameInfo.Buildings["BUILDING_MUSEUM_ART"].Index
-MUSEUM_OF_ARCHAEOLOGY_INDEX = GameInfo.Buildings["BUILDING_MUSEUM_ARTIFACT"].Index
-districtCountsPerEra = {}
+-- On Load, find if the Great Bath exists, and store the river name
+Events.LoadGameViewStateDone.Add(function()
+    local players = PlayerManager.GetAlive()
+    for _, player in ipairs(players) do
+        local playerID = player:GetID()
+        local cities = player:GetCities()
+        for _, city in cities:Members() do
+            local districts = city:GetDistricts()
+            local district = districts:GetDistrict(WONDER_DISTRICT_INDEX)
+            if district ~= nil then
+                local plot = Map.GetPlot(district:GetX(), district:GetY())
+                local wonderIndex = plot:GetWonderType()
+                if wonderIndex ~= nil then
+                    if WondersByCity[playerID] == nil then
+                        WondersByCity[playerID] = {}
+                    end
+                    WondersByCity[playerID][city:GetID()] = wonderIndex
+                end
+                if wonderIndex == GREAT_BATH_BUILDING_INDEX then
+                    GreatBathRiverName = RiverManager.GetRiverName(plot)
+                end
+                break
+            end
+        end
+    end
+end)
 
-function IncrementBuildCount(playerID, cityID)
+------------------------------------------------------------------------------
+-- MUSEUM OF ANTIQUITY EVENTS
+------------------------------------------------------------------------------
+-- When the shipwrecks are added to the map, find the number of Antiquity Museums needed
+Events.CivicCompleted.Add(function(_, iCivic)
+    if MuseumOfAntiquityCount > 0 then
+        return
+    end
+    if iCivic ~= CULTURAL_HERITAGE_INDEX then
+        return
+    end
+
+    local count = GetCountOfAntiquitySitesOnMap()
+    MuseumOfAntiquityCount = math.ceil(count / 3)
+end)
+
+-- On load, find the number of Antiquity Museums needed
+Events.LoadGameViewStateDone.Add(function()
+    local siteCount = GetCountOfAntiquitySitesOnMap()
+
+end)
+
+Events.CityProductionChanged.Add(function(playerID, cityID)
     -- TODO: verify this works to add the city to the array
     --       work on removing the city if the production is
     --       changed away before any progress made
@@ -50,7 +101,7 @@ function IncrementBuildCount(playerID, cityID)
 
     if not player:IsHuman() then return end
 
-    local city = player:GetCities():FindID(cityID)
+    local city = CityManager.GetCity(playerID, cityID)
     if not city then return end
 
     local queue = city:GetBuildQueue()
@@ -60,159 +111,16 @@ function IncrementBuildCount(playerID, cityID)
     if prodType == -1 then return end
 
     if prodType == MUSEUM_OF_ARCHAEOLOGY_INDEX then
-        local cityCheck = g_MuseumOfAntiquityCityTable[cityID]
+        local cityCheck = MuseumOfAntiquityCityTable[cityID]
         if cityCheck == nil then
-            g_MuseumOfAntiquityCityTable[cityID] = true
+            MuseumOfAntiquityCityTable[cityID] = true
             local keys = {}
-            for k, _ in pairs(g_MuseumOfAntiquityCityTable) do
+            for k, _ in pairs(MuseumOfAntiquityCityTable) do
                 table.insert(keys, tostring(k))
             end
-            Game.SetProperty(
-                MUSEUM_OF_ARCHAEOLOGY_ARRAY_KEY,
-                table.concat(keys, ",")
-            )
         end
     end
-end
+end)
 
-Events.CityProductionChanged.Add(IncrementBuildCount)
-
-function queueTest(playerID, cityID, changeType, queueIndex)
-    print(playerID, cityID, changeType, queueIndex)
-    local player = Players[playerID]
-    if not player then return end
-
-    if not player:IsHuman() then return end
-
-    local cityQueueBuildings = ExposedMembers.ProductionPanelHelpers.GetCityQueueBuildings(
-        playerID,
-        cityID
-    )
-    local cityCheck = g_MuseumOfAntiquityCityTable[cityID]
-    local needsSaved = false
-    if cityQueueBuildings[MUSEUM_OF_ARCHAEOLOGY_INDEX] == true then
-        if cityCheck == nil then
-            g_MuseumOfAntiquityCityTable[cityID] = true
-            needsSaved = true
-        end
-    elseif cityCheck == true then
-        local city = player:GetCities():FindID(cityID)
-        local buildings = city:GetBuildings()
-        local hasBuilding = buildings:HasBuilding(MUSEUM_OF_ARCHAEOLOGY_INDEX)
-        local queue = city:GetBuildQueue()
-        local hasBuildingProgress = queue:HasBuildingProductionProgress(MUSEUM_OF_ARCHAEOLOGY_INDEX)
-        if hasBuilding == false and hasBuildingProgress == false then
-            g_MuseumOfAntiquityCityTable[cityID] = nil
-            needsSaved = true
-        end
-        if needsSaved then
-            local keys = {}
-            for k, _ in pairs(g_MuseumOfAntiquityCityTable) do
-                table.insert(keys, tostring(k))
-            end
-            Game.SetProperty(
-                MUSEUM_OF_ARCHAEOLOGY_ARRAY_KEY,
-                table.concat(keys, ",")
-            )
-        end
-    end
-end
-
-Events.CityProductionQueueChanged.Add(queueTest)
-
-local DA_VINCI_KEY = "GREAT_PERSON_INDIVIDUAL_LEONARDO_DA_VINCI"
-local DA_VINCI_GREAT_PERSON = GameInfo.GreatPersonIndividuals[DA_VINCI_KEY]
-DA_VINCI_INDEX = DA_VINCI_GREAT_PERSON.Index
-
-function StoreDaVinciActivated(_, _, _, greatPersonIndividualType)
-    if greatPersonIndividualType == DA_VINCI_INDEX then
-        g_DaVinciActivated = true
-        Game.SetProperty(DA_VINCI_KEY, g_DaVinciActivated)
-    end
-end
-
-Events.UnitGreatPersonActivated.Add(StoreDaVinciActivated)
-
-function StoreCivicTierEnabled(_, _, buildingTypeID)
-    local buildingInfo = GameInfo.Buildings[buildingTypeID]
-    local districtType = buildingInfo.PrereqDistrict
-    if districtType ~= "DISTRICT_THEATER" then
-        return
-    end
-
-    local buildingType = buildingInfo.BuildingType
-    local tierNumber = GetTierForBuilding(buildingType, districtType)
-    if tierNumber == nil or tierNumber == 1 then
-        return
-    end
-
-    for _, tier in pairs(g_TiersEnabled) do
-        if tier == tierNumber then
-            return
-        end
-    end
-
-    table.insert(g_TiersEnabled, tierNumber)
-    Game.SetProperty(
-        CIVIC_TIERS_ENABLED_KEY,
-        table.concat(g_TiersEnabled, ",")
-    )
-end
-
-GameEvents.BuildingConstructed.Add(StoreCivicTierEnabled)
-
-CULTURAL_HERITAGE_INDEX = GameInfo.Civics["CIVIC_CULTURAL_HERITAGE"].Index
-MUSEUM_OF_ARCHAEOLOGY_COUNT_KEY = "MUSEUM_OF_ARCHAEOLOGY_COUNT"
-MUSEUM_OF_ARCHAEOLOGY_ARRAY_KEY = "MUSEUM_OF_ARCHAEOLOGY_ARRAY"
-g_MuseumOfAntiquityCount = 0
-g_MuseumOfAntiquityCityTable = {}
-
-function DetermineMuseumOfAntiquityCount(_, iCivic)
-    if g_MuseumOfAntiquityCount > 0 then
-        return
-    end
-    if iCivic ~= CULTURAL_HERITAGE_INDEX then
-        return
-    end
-
-    local iW, iH = Map.GetGridSize();
-    local count = 0;
-    local iAntiquitySite = GameInfo.Resources["RESOURCE_ANTIQUITY_SITE"].Index
-    local iShipwreck = GameInfo.Resources["RESOURCE_SHIPWRECK"].Index
-    for x = 0, iW - 1 do
-        for y = 0, iH - 1 do
-            local pPlot = Map.GetPlot(x, y)
-            local iResourceType = pPlot:GetResourceType()
-            if iResourceType == iAntiquitySite or iResourceType == iShipwreck then
-                count = count + 1
-            end
-        end
-    end
-    g_MuseumOfAntiquityCount = math.ceil(count / 3)
-    Game.SetProperty(MUSEUM_OF_ARCHAEOLOGY_COUNT_KEY, g_MuseumOfAntiquityCount)
-end
-
-Events.CivicCompleted.Add(DetermineMuseumOfAntiquityCount)
-
-function OnLoadScreenClose()
-    g_DaVinciActivated = Game.GetProperty(DA_VINCI_KEY) or false
-    g_MuseumOfAntiquityCount = Game.GetProperty(MUSEUM_OF_ARCHAEOLOGY_COUNT_KEY) or 0
-    if g_MuseumOfAntiquityCount then
-        LoadPropertyToTable(
-            MUSEUM_OF_ARCHAEOLOGY_ARRAY_KEY,
-            g_MuseumOfAntiquityCityTable,
-            true,
-            tonumber
-        )
-    end
-    LoadPropertyToTable(
-        CIVIC_TIERS_ENABLED_KEY,
-        g_TiersEnabled,
-        true,
-        tonumber
-    )
-end
-
-Events.LoadScreenClose.Add(OnLoadScreenClose)
 
 print("=== Custom District Rules (Events) Loaded ===")

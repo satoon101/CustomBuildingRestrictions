@@ -15,8 +15,8 @@ function SyncPins()
     local pConfig = PlayerConfigurations[playerID]
     if not pConfig then return end
 
-    PinsByPlot = {}
-    PinsByCity = {}
+    PinsByPlot[playerID] = {}
+    PinsByCity[playerID] = {}
     local pPins = pConfig:GetMapPins()
     for _, pin in pairs(pPins) do
         local x = pin:GetHexX()
@@ -26,12 +26,12 @@ function SyncPins()
         local cityID = -1
         if city ~= nil then
             cityID = city:GetID()
-            if PinsByCity[cityID] == nil then
-                PinsByCity[cityID] = {}
+            if PinsByCity[playerID][cityID] == nil then
+                PinsByCity[playerID][cityID] = {}
             end
-            table.insert(PinsByCity[cityID], plotID)
+            table.insert(PinsByCity[playerID][cityID], plotID)
         end
-        PinsByPlot[plotID] = {
+        PinsByPlot[playerID][plotID] = {
             PinID = pin:GetID(),
             Icon = pin:GetIconName():gsub("^ICON_", ""),
             CityID = cityID
@@ -41,14 +41,14 @@ end
 
 SyncPins()
 
-function GetPinForWonderInCity(cityID, buildingType)
-    local cityMapPinPlots = PinsByCity[cityID]
+function GetPinForWonderInCity(playerID, cityID, buildingType)
+    local cityMapPinPlots = PinsByCity[playerID][cityID]
     if cityMapPinPlots == nil then
         return nil
     end
 
     for _, plotID in ipairs(cityMapPinPlots) do
-        local pinData = PinsByPlot[plotID]
+        local pinData = PinsByPlot[playerID][plotID]
         if pinData ~= nil then
             local icon = pinData.Icon
             if icon == buildingType then
@@ -59,14 +59,14 @@ function GetPinForWonderInCity(cityID, buildingType)
     return nil
 end
 
-function GetCityWonderFromMapPins(cityID)
-    local cityMapPinPlots = PinsByCity[cityID]
+function GetCityWonderFromMapPins(playerID, cityID)
+    local cityMapPinPlots = PinsByCity[playerID][cityID]
     if cityMapPinPlots == nil then
         return nil
     end
 
     for _, plotID in ipairs(cityMapPinPlots) do
-        local pinData = PinsByPlot[plotID]
+        local pinData = PinsByPlot[playerID][plotID]
         if pinData ~= nil then
             local icon = pinData.Icon
             local buildingInfo = GameInfo.Buildings[icon]
@@ -79,14 +79,14 @@ function GetCityWonderFromMapPins(cityID)
 end
 
 
-function IsDistrictPinInCity(cityID, districtType)
-    local cityMapPinPlots = PinsByCity[cityID]
+function IsDistrictPinInCity(playerID, cityID, districtType)
+    local cityMapPinPlots = PinsByCity[playerID][cityID]
     if cityMapPinPlots == nil then
         return false
     end
 
     for _, plotID in ipairs(cityMapPinPlots) do
-        local pinData = PinsByPlot[plotID]
+        local pinData = PinsByPlot[playerID][plotID]
         if pinData ~= nil then
             local icon = pinData.Icon
             if icon == districtType then

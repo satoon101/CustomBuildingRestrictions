@@ -13,8 +13,6 @@ UnitPromotionClassCounts = {
 BUILDING_DIRECTIVE_INDEX = 1
 DISTRICT_DIRECTIVE_INDEX = 2
 
-HOLY_SITE_DISTRICT_INDEX = GameInfo.Districts["DISTRICT_HOLY_SITE"].Index
-
 WONDER_EXCEPTIONS = {
     ["BUILDING_STONEHENGE"] = 1,
     ["BUILDING_PYRAMIDS"] = 1,
@@ -24,6 +22,7 @@ WONDER_EXCEPTIONS = {
 
 BREAD_AND_CIRCUSES_HASH = GameInfo.Projects["PROJECT_BREAD_AND_CIRCUSES"].Hash
 CARBON_RECAPTURE_HASH = GameInfo.Projects["PROJECT_CARBON_RECAPTURE"].Hash
+HOLY_SITE_DISTRICT_INDEX = GameInfo.Districts["DISTRICT_HOLY_SITE"].Index
 
 local function ShouldRecommissionReactor(city)
     local projectName = "PROJECT_RECOMMISSION_REACTOR"
@@ -42,18 +41,18 @@ local function ShouldRecommissionReactor(city)
 end
 
 local function SwapItemsInQueue(city, sourceIndex, destIndex)
-    local tParameters = {};
-    tParameters[CityOperationTypes.PARAM_INSERT_MODE] = CityOperationTypes.VALUE_SWAP;
-    tParameters[CityOperationTypes.PARAM_QUEUE_SOURCE_LOCATION] = sourceIndex;
-    tParameters[CityOperationTypes.PARAM_QUEUE_DESTINATION_LOCATION] = destIndex;
-    CityManager.RequestOperation(city, CityOperationTypes.BUILD, tParameters);
+    local tParameters = {}
+    tParameters[CityOperationTypes.PARAM_INSERT_MODE] = CityOperationTypes.VALUE_SWAP
+    tParameters[CityOperationTypes.PARAM_QUEUE_SOURCE_LOCATION] = sourceIndex
+    tParameters[CityOperationTypes.PARAM_QUEUE_DESTINATION_LOCATION] = destIndex
+    CityManager.RequestOperation(city, CityOperationTypes.BUILD, tParameters)
 end
 
 function AppendItemToQueue(city, newItemHash, paramType)
-    local tParameters = {};
-    tParameters[paramType] = newItemHash;
-    tParameters[CityOperationTypes.PARAM_INSERT_MODE] = CityOperationTypes.VALUE_APPEND;
-    CityManager.RequestOperation(city, CityOperationTypes.BUILD, tParameters);
+    local tParameters = {}
+    tParameters[paramType] = newItemHash
+    tParameters[CityOperationTypes.PARAM_INSERT_MODE] = CityOperationTypes.VALUE_APPEND
+    CityManager.RequestOperation(city, CityOperationTypes.BUILD, tParameters)
 end
 
 local function PrependItemToQueue(city, newItemHash, paramType)
@@ -129,6 +128,7 @@ local function DoesFirstItemNeedRemoved(city)
         end
         if info.Index == HOLY_SITE_DISTRICT_INDEX then
             local wonderName = ExposedMembers.CustomDistrictRules.GetWonderFromCity(
+                city:GetOwner(),
                 city:GetID()
             )
             if city:IsCapital() or wonderName == "BUILDING_STONEHENGE" then
@@ -185,6 +185,7 @@ function GetNewItemToWork(city, onTurnStart)
     local queue = city:GetBuildQueue()
     if onTurnStart == true then
         local wonderName = ExposedMembers.CustomDistrictRules.GetWonderFromCity(
+            city:GetOwner(),
             city:GetID()
         )
         if wonderName ~= nil then
