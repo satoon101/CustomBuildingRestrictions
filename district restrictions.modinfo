@@ -9,23 +9,18 @@
     </Properties>
 
     <InGameActions>
-        <AddUserInterfaces id="ProductionQueue">
-            <Properties>
-                <Context>InGame</Context>
-            </Properties>
-            <File>scripts/UI/ProductionQueue.xml</File>
-        </AddUserInterfaces>
 
         <AddGameplayScripts id="DistrictRestrictionsScript">
             <File>scripts/Gameplay/DistrictRestrictions.lua</File>
         </AddGameplayScripts>
 
-        <ReplaceUIScript id="CustomProductionPanel">
+        <ReplaceUIScript id="ProductionPanel_BuildRestrictions">
             <Properties>
                 <LuaContext>ProductionPanel</LuaContext>
                 <LuaReplace>scripts/UI/ProductionPanel_DistrictBlocker.lua</LuaReplace>
             </Properties>
         </ReplaceUIScript>
+
 
         <ReplaceUIScript id="CustomMapPinPopup">
             <Properties>
@@ -44,7 +39,6 @@
             <File>scripts/Gameplay/DistrictRestrictions_GlobalObjects.lua</File>
             <File>scripts/UI/MapTack_Interface.lua</File>
             <File>scripts/UI/ProductionPanel_Helpers.lua</File>
-            <File>scripts/UI/ProductionQueue_Helpers.lua</File>
         </ImportFiles>
     </InGameActions>
 
@@ -61,8 +55,5 @@
         <File>scripts/UI/MapPinPopup_RefreshOnOk.lua</File>
         <File>scripts/UI/MapTack_Interface.lua</File>
         <File>scripts/UI/ProductionPanel_DistrictBlocker.lua</File>
-        <File>scripts/UI/ProductionQueue.lua</File>
-        <File>scripts/UI/ProductionQueue.xml</File>
-        <File>scripts/UI/ProductionQueue_Helpers.lua</File>
     </Files>
 </Mod>
