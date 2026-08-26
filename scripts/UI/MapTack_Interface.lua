@@ -104,7 +104,24 @@ function DeleteMapPin(playerID, pinID)
     SyncPins()
 end
 
+function AddInitialCityIcon(playerID, _, iX, iY)
+    local player = Players[playerID]
+    if not player:IsAlive() then
+        return
+    end
 
+    local cities = player:GetCities()
+    if cities:GetCount() > 1 then
+        return
+    end
+
+    local config = PlayerConfigurations[playerID]
+    local pin = config:GetMapPin(iX, iY)
+    pin:SetIconName("ICON_BUILDING_APADANA")
+    Network.BroadcastPlayerInfo()
+end
+
+Events.CityAddedToMap.Add(AddInitialCityIcon)
 Events.LoadGameViewStateDone.Add(SyncPins)
 Events.CityAddedToMap.Add(SyncPins)
 
