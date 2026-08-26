@@ -19,7 +19,7 @@ LIANG_INDEX = GameInfo.Governors["GOVERNOR_THE_BUILDER"].Index
 PINGALA_INDEX = GameInfo.Governors["GOVERNOR_THE_EDUCATOR"].Index
 REYNA_INDEX = GameInfo.Governors["GOVERNOR_THE_MERCHANT"].Index
 
-stableGovernors = {
+StableGovernors = {
     [VICTOR_INDEX] = false,
     [AMANI_INDEX] = false,
     [MOKSHA_INDEX] = true,
@@ -36,7 +36,7 @@ function CityHasStableGovernor(playerID, cityID)
         return false
     end
 
-    return stableGovernors[governor:GetType()] or false
+    return StableGovernors[governor:GetType()] or false
 end
 
 function GetCityQueueBuildings(playerID, cityID)
