@@ -5,10 +5,11 @@
 
 print("=== Custom District Rules (Gameplay) Loading ===")
 
+include("DistrictRestrictions_Config")
 include("DistrictRestrictions_Constants")
-include("DistrictRestrictions_Events")
 include("DistrictRestrictions_Helpers")
-include("DistrictRestrictions_GlobalObjects")
+
+ExposedMembers.CustomDistrictRules = ExposedMembers.CustomDistrictRules or {}
 
 function IsDistrictBlocked(playerID, cityID, districtType)
     if PlayerUniqueDistricts[playerID] == nil then
@@ -26,13 +27,8 @@ function IsDistrictBlocked(playerID, cityID, districtType)
             playerID,
             cityID
         )
-        if wonder ~= nil then
-            local prereqDistrictType = PrereqDistrictForWonders[wonder]
-            if prereqDistrictType ~= baseDistrictType then
-                local name = Locale.Lookup(GameInfo.Buildings[wonder].Name)
-                return true, "District only allowed for city marked to build " .. name
-            end
-        else
+        local prereqDistrictType = PrereqDistrictForWonders[wonder]
+        if prereqDistrictType ~= baseDistrictType then
             return true, "District is always disabled"
         end
     end
@@ -47,7 +43,7 @@ function IsDistrictBlocked(playerID, cityID, districtType)
 
     local districtTypes = CityDistrictsByType[CityDistrictTypes[baseDistrictType]]
     local check_primary_districts = false
-    if #districtTypes > 1 then
+    if districtTypes and #districtTypes > 1 then
         for _, newDistrictType in ipairs(districtTypes) do
             if newDistrictType ~= baseDistrictType then
                 if GetCityHasDistrict(playerID, cityID, newDistrictType) then
@@ -76,6 +72,10 @@ function IsDistrictBlocked(playerID, cityID, districtType)
 end
 
 function IsBuildingBlocked(playerID, cityID, districtType, buildingType, isWonder)
+    if PlayerUniqueDistricts[playerID] == nil then
+        PlayerUniqueDistricts[playerID] = GetPlayerUniqueDistricts(playerID)
+    end
+
     if PlayerUniqueBuildings[playerID] == nil then
         PlayerUniqueBuildings[playerID] = GetPlayerUniqueBuildings(playerID)
     end
@@ -84,12 +84,13 @@ function IsBuildingBlocked(playerID, cityID, districtType, buildingType, isWonde
 
     local baseBuildingType = PlayerUniqueBuildings[playerID][buildingType] or buildingType
 
-    local districtConfig = DistrictRestrictions[baseDistrictType]
+    local districtConfig = DistrictRestrictions[baseDistrictType] or {}
 
     -- Disallow if always restricted
     local isDisabled = false
-    local disabledBuildings = districtConfig["disabled_buildings"][buildingType]
-    if disabledBuildings ~= nil then
+    local disabledBuildings = districtConfig["disabled_buildings"] or {}
+    local buildingDisabled = disabledBuildings[buildingType]
+    if buildingDisabled ~= nil then
         -- TODO: test to see if this is working correctly with Alexander Encampment Tier 1
         -- TODO:    Statue of Zeus (might need to be in 'functions')
         isDisabled = disabledBuildings[baseBuildingType]
