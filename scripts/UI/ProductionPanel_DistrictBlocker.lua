@@ -20,31 +20,52 @@ function GetData()
         return data
     end
 
+    --------------------------------------------------------------------------
+    -- Block production of Districts
+    --------------------------------------------------------------------------
     for _, item in ipairs(data.DistrictItems) do
-        if not item.Disabled and not item.HasBeenBuilt and item.Progress == 0 then
-            local isBlocked, reason = ExposedMembers.CustomDistrictRules.IsDistrictBlocked(
+        if (
+            not item.Disabled and
+            not item.HasBeenBuilt and
+            item.Progress == 0
+        ) then
+            local success, isBlocked, reason = pcall(
+                ExposedMembers.CustomDistrictRules.IsDistrictBlocked,
                 playerID,
                 cityID,
                 item.Type
             )
+            if not success then
+                print("Error occurred in IsDistrictBlocked:", isBlocked)
+                return
+            end
             if isBlocked then
                 item.Disabled = true
                 item.ToolTip = item.ToolTip .. "[NEWLINE][COLOR_RED]" .. reason
             end
         end
     end
+
+    --------------------------------------------------------------------------
+    -- Block production of Buildings
+    --------------------------------------------------------------------------
     local progressData = {}
     local disabledItems = {}
     for _, item in ipairs(data.BuildingItems) do
         progressData[item.Type] = item.Progress
         if not item.Disabled and item.Progress == 0 then
-            local isBlocked, reason = ExposedMembers.CustomDistrictRules.IsBuildingBlocked(
+            local success, isBlocked, reason = pcall(
+                ExposedMembers.CustomDistrictRules.IsBuildingBlocked,
                 playerID,
                 cityID,
                 item.PrereqDistrict,
                 item.Type,
                 item.IsWonder
             )
+            if not success then
+                print("Error occurred in IsBuildingBlocked:", isBlocked)
+                return
+            end
             if isBlocked then
                 item.Disabled = true
                 item.ToolTip = item.ToolTip .. "[NEWLINE][COLOR_RED]" .. reason
@@ -53,6 +74,9 @@ function GetData()
         end
     end
 
+    --------------------------------------------------------------------------
+    -- Block purchasing of Buildings
+    --------------------------------------------------------------------------
     -- the item currently at the front of the queue will not be included,
     --  so we need to retrieve that value separately
     local building = GameInfo.Buildings[data.CurrentProductionType]
@@ -67,12 +91,10 @@ function GetData()
             if tooltip ~= nil then
                 item.Disabled = true
                 item.ToolTip = tooltip
-            else
-                if progressData[item.Type] > 0 then
-                    item.Disabled = true
-                    local reason = "Building process has already begun"
-                    item.ToolTip = item.ToolTip .. "[NEWLINE][COLOR_RED]" .. reason
-                end
+            elseif progressData[item.Type] > 0 then
+                item.Disabled = true
+                local reason = "Building process has already begun"
+                item.ToolTip = item.ToolTip .. "[NEWLINE][COLOR_RED]" .. reason
             end
         end
     end
