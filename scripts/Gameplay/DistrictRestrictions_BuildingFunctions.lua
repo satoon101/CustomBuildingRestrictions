@@ -57,16 +57,6 @@ function RestrictForTier2HolySite(playerID, cityID, _, _, _, baseBuildingType)
     end
 end
 
--- TODO:
--- update all mods to save globals on "save" and load globals on "load" instead of "live"
--- try to find consistent ways to store certain types of arrays
--- array[key] = <value>
--- array[key] = true
--- array of items (not key/value pairs)
--- find way to force gold/faith purchase screen to open or stay open on purchase
-
--- add functionality to allow n number of building x for era y
--- add functionality to auto purchase items for district in all cities
 function restrictCivicSquareMuseums(_, cityID, _, buildingType)
     if MuseumOfAntiquityCount == 0 then
         return true, "Prerequisite Civic has not been researched."

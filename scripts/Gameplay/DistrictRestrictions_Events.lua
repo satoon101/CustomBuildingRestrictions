@@ -89,7 +89,9 @@ end)
 -- On load, find the number of Antiquity Museums needed
 Events.LoadGameViewStateDone.Add(function()
     local siteCount = GetCountOfAntiquitySitesOnMap()
-
+    local artifactCount = GetCountOfExistingArtifacts()
+    local count = siteCount + artifactCount
+    MuseumOfAntiquityCount = math.ceil(count / 3)
 end)
 
 Events.CityProductionChanged.Add(function(playerID, cityID)
@@ -122,5 +124,11 @@ Events.CityProductionChanged.Add(function(playerID, cityID)
     end
 end)
 
-
+------------------------------------------------------------------------------
+-- BASE LOAD EVENTS
+------------------------------------------------------------------------------
+Events.LoadGameViewStateDone.Add(function()
+    GatherCityDistrictsByType()
+    GatherBuildingRelatedData()
+end)
 print("=== Custom District Rules (Events) Loaded ===")

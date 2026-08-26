@@ -48,6 +48,8 @@ DistrictRestrictions = {
     },
     ["DISTRICT_CITY_CENTER"] = {
         ["disabled_buildings"] = {
+            -- Tier 1
+            ["BUILDING_MONUMENT"] = true,
             -- Tier 3
             ["BUILDING_JNR_WHARF_TRADE"] = true
         },

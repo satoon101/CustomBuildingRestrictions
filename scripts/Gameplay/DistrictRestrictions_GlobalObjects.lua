@@ -8,7 +8,6 @@ include("DistrictRestrictions_Constants")
 CityDistrictsByType = {}
 PrereqDistrictForWonders = {}
 TierByBuildingType = {}
-BuildingTypesByTier = {}
 
 GreatBathRiverName = nil
 WondersByCity = {}
@@ -59,7 +58,6 @@ function GatherBuildingRelatedData()
     end
     for districtType, prereqBuildings in pairs(prereqData) do
         TierByBuildingType[districtType] = {}
-        BuildingTypesByTier[districtType] = {}
         for buildingType in pairs(prereqBuildings) do
             local tier = 1
             local currentBuildingType = buildingType
@@ -72,17 +70,8 @@ function GatherBuildingRelatedData()
             -- Store the result: TierByBuildingType["DISTRICT_CAMPUS"]["BUILDING_LIBRARY"] = 1
             -- Store the result: TierByBuildingType["DISTRICT_CAMPUS"]["BUILDING_LIBRARY"] = 1
             TierByBuildingType[districtType][buildingType] = tier
-
-            if BuildingTypesByTier[districtType][tier] == nil then
-                BuildingTypesByTier[districtType][tier] = {}
-            end
-            -- Store the result: BuildingTypesByTier["DISTRICT_CAMPUS"][1] = {"BUILDING_LIBRARY", "BUILDING_SHCOOL"}
-            table.insert(BuildingTypesByTier[districtType][tier], buildingType)
         end
     end
 end
-
-GatherCityDistrictsByType()
-GatherBuildingRelatedData()
 
 print("=== Custom District Rules (OnLoad) Loaded ===")
