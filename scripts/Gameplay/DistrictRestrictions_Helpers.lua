@@ -7,8 +7,6 @@ include("DistrictRestrictions_Config")
 include("DistrictRestrictions_Constants")
 include("DistrictRestrictions_GlobalObjects")
 
-ExposedMembers.CustomDistrictRules = ExposedMembers.CustomDistrictRules or {}
-
 PlayerUniqueDistricts = {}
 PlayerUniqueBuildings = {}
 
@@ -37,22 +35,6 @@ function HasCityBuiltPrimaryDistricts(playerID, cityID)
         end
     end
     return true
-end
-
-function YieldBuildingTypeByTier(districtType)
-    local tierData = BuildingTypesByTier[districtType]
-    if tierData == nil then
-        return
-    end
-
-    return coroutine.wrap(function()
-        local count = #tierData
-        for i = 1, count do
-            for _, row in ipairs(tierData[i]) do
-                coroutine.yield(row)
-            end
-        end
-    end)
 end
 
 function GetPlayerUniqueDistricts(playerID)
@@ -97,14 +79,6 @@ function GetPlayerUniqueBuildings(playerID)
     return data
 end
 
-function GetWonderFromCity(playerID, cityID)
-    local wonderName = WondersByCity[playerID] or {}
-    wonderName = wonderName[cityID]
-    if wonderName == nil then
-        wonderName = ExposedMembers.MapPins.GetCityWonderFromMapPins(playerID, cityID)
-    end
-end
-
 function GetCountOfAntiquitySitesOnMap()
     local iW, iH = Map.GetGridSize()
     local count = 0
@@ -120,27 +94,49 @@ function GetCountOfAntiquitySitesOnMap()
     return count
 end
 
---function GetCountOfExistingArtifacts()
---    local count = 0
---    for _, player in ipairs(Players) do
---        if player:IsAlive() then
---            local cities = player:GetCities()
---            for _, city in cities:Members() do
---                local buildings = city:GetBuildings()
---                if buildings:HasBuilding(MUSEUM_OF_ARCHAEOLOGY_INDEX) then
---                    local slot_count = buildings:GetNumGreatWorkSlots()
---                    for index = 0,
---                end
---            end
---        end
---    end
---end
+function GetCountOfExistingArtifacts()
+    local count = 0
+    for _, player in ipairs(Players) do
+        if player:IsAlive() then
+            local cities = player:GetCities()
+            for _, city in cities:Members() do
+                local buildings = city:GetBuildings()
+                if buildings:HasBuilding(MUSEUM_OF_ARCHAEOLOGY_INDEX) then
+                    local slot_count = buildings:GetNumGreatWorkSlots(MUSEUM_OF_ARCHAEOLOGY_INDEX)
+                    for index = 0, slot_count - 1 do
+                        local great_work = buildings:GetGreatWorkInSlot(
+                            MUSEUM_OF_ARCHAEOLOGY_INDEX,
+                            index
+                        )
+                        if great_work ~= -1 then
+                            count = count + 1
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return count
+end
+
+function GetCountOfExistingArchaeologicalMuseums()
+    local count = 0
+    for _, player in ipairs(Players) do
+        if player:IsAlive() then
+            local cities = player:GetCities()
+            for _, city in cities:Members() do
+                local buildings = city:GetBuildings()
+                if buildings:HasBuilding(MUSEUM_OF_ARCHAEOLOGY_INDEX) then
+                    count = count + 1
+                end
+            end
+        end
+    end
+    return count
+end
 
 -- ===========================================================================
 --  Expose the functions to the UI layer
 -- ===========================================================================
-
-ExposedMembers.CustomDistrictRules.GetWonderFromCity = GetWonderFromCity
-ExposedMembers.CustomDistrictRules.YieldBuildingTypeByTier = YieldBuildingTypeByTier
 
 print("=== Custom District Rules (Helpers) Loaded ===")
